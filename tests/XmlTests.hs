@@ -12,8 +12,7 @@ import Test.Hspec
 import Test.Hspec.Expectations
 import Text.XmlHtml
 
-testConfig :: SRSConfig
-testConfig = SRSConfig "http://localhost:55443" "janedoe" "0123456789abcdef" "127.0.0.1"
+import TestConfig
 
 testDomain1 :: IO Domain
 testDomain1 = do

@@ -4,3 +4,6 @@ cabal.sandbox.config
 
 # Ignore builds
 dist/*
+
+# Ignore test configuration
+tests/TestConfig.hs
