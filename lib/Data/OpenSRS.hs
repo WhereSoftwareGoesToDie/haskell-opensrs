@@ -1,12 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Data.OpenSRS where
 
 import Control.Lens
 import Data.Bifunctor
 import Data.ByteString (ByteString)
-import Data.ByteString.Char8 (pack, unpack, split)
+import Data.ByteString.Char8 (pack, split, unpack)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.CaseInsensitive as CI
 import Data.Hash.MD5
@@ -19,16 +18,16 @@ import Network.HTTP.Types (HeaderName)
 import Network.Wreq
 import Network.Wreq.Types
 
-import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Tree
-import Text.HTML.TagSoup.Entity
 import Data.Char
 import Data.String (IsString)
 import qualified Data.Text as Text
-import Text.StringLike (fromString, toString, StringLike)
+import Text.HTML.TagSoup
+import Text.HTML.TagSoup.Entity
+import Text.HTML.TagSoup.Tree
+import Text.StringLike (StringLike, fromString, toString)
 
-import Text.XmlHtml
 import Blaze.ByteString.Builder
+import Text.XmlHtml
 
 --------------------------------------------------------------------------------
 
@@ -58,33 +57,33 @@ doRequest r@(GetDomain config domainName) = do
     res <- postRequest r
     let b = res^.responseBody
     let resp = parseResponse $ BSL8.unpack b
-    case srsSuccess resp of
-        True -> return $ Right $ DomainResult $ parseDomain domainName $ BSL8.unpack b
-        _    -> return $ Left $ responseError resp
+    return $ if srsSuccess resp
+        then Right $ DomainResult $ parseDomain domainName $ BSL8.unpack b
+        else Left $ responseError resp
 doRequest r@(LookupDomain config domainName) = do
     res <- postRequest r
     let b = res^.responseBody
     let resp = parseResponse $ BSL8.unpack b
-    case srsSuccess resp of
-        True -> return $ Right $ DomainAvailabilityResult $ parseDomainAvailability domainName $ BSL8.unpack b
-        _    -> return $ Left $ responseError resp
+    return $ if srsSuccess resp
+        then Right $ DomainAvailabilityResult $ parseDomainAvailability domainName $ BSL8.unpack b
+        else Left $ responseError resp
 doRequest r@(RenewDomain config domainName _ _ _ _ _) = do
     res <- postRequest r
     let b = res^.responseBody
     let resp = parseResponse $ BSL8.unpack b
-    case srsSuccess resp of
-        True -> return $ Right $ DomainRenewalResult $ parseDomainRenewal domainName $ BSL8.unpack b
-        _    -> return $ Left $ responseError resp
+    return $ if srsSuccess resp
+        then Right $ DomainRenewalResult $ parseDomainRenewal domainName $ BSL8.unpack b
+        else Left $ responseError resp
 doRequest r@(UpdateDomain config _) = do
     res <- postRequest r
     let b = res^.responseBody
     let resp = parseResponse $ BSL8.unpack b
-    case srsSuccess resp of
-        True -> return $ Right $ GenericSuccess $ parseSuccess $ BSL8.unpack b
-        _    -> return $ Left $ responseError resp
+    return $ if srsSuccess resp
+        then Right $ GenericSuccess $ parseSuccess $ BSL8.unpack b
+        else Left $ responseError resp
 
 responseError :: SRSResponse -> String
-responseError resp = (show $ srsResponseCode resp) ++ ": " ++ (srsResponseText resp)
+responseError resp = show (srsResponseCode resp) ++ ": " ++ srsResponseText resp
 
 postRequest :: SRSRequest -> IO (Response BSL8.ByteString)
 postRequest req = postWith opts (srsEndpoint $ requestConfig req) postBody
@@ -98,7 +97,7 @@ postRequest req = postWith opts (srsEndpoint $ requestConfig req) postBody
     ps = toLazyByteString $ render $ requestXML req
 
 md5Wrap :: String -> String -> String
-md5Wrap pk content = md5pack ((md5pack $ content ++ pk) ++ pk)
+md5Wrap pk content = md5pack (md5pack (content ++ pk) ++ pk)
   where
     md5pack = md5s . Str
 

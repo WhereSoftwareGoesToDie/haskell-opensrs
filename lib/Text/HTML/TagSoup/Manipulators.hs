@@ -5,7 +5,7 @@ module Text.HTML.TagSoup.Manipulators where
 import Control.Lens
 import Data.Bifunctor
 import Data.ByteString (ByteString)
-import Data.ByteString.Char8 (pack, unpack, split)
+import Data.ByteString.Char8 (pack, split, unpack)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.CaseInsensitive as CI
 import Data.Hash.MD5
@@ -13,12 +13,12 @@ import Data.List
 import Data.Map
 import Data.Maybe
 
-import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Tree
-import Text.HTML.TagSoup.Entity
 import Data.Char
 import Data.String (IsString)
-import Text.StringLike (fromString, toString, StringLike)
+import Text.HTML.TagSoup
+import Text.HTML.TagSoup.Entity
+import Text.HTML.TagSoup.Tree
+import Text.StringLike (StringLike, fromString, toString)
 
 --------------------------------------------------------------------------------
 -- | Get inner text of the next tag fitting this matcher
@@ -35,29 +35,29 @@ itemInnerValue' :: (Eq a, StringLike a, Show a) => [Tag a] -> String
 itemInnerValue' x = tagIdent (x !! 1)
 
 topMatching :: (Eq a, StringLike a, Show a) => String -> [TagTree a] -> [TagTree a]
-topMatching matcher = concat . Prelude.map (topMatching' matcher)
+topMatching matcher = concatMap (topMatching' matcher)
 
 matchingKids :: (Eq a, StringLike a, Show a) => String -> [TagTree a] -> [TagTree a]
-matchingKids matcher = concat . Prelude.map (matchingKids' matcher)
+matchingKids matcher = concatMap (matchingKids' matcher)
 
 kidsWith :: (Eq a, StringLike a, Show a) => String -> [TagTree a] -> [TagTree a]
-kidsWith matcher = concat . Prelude.map (topMatching matcher) . Prelude.map getKids
+kidsWith matcher = concatMap (topMatching matcher) . Prelude.map getKids
 
 topMatching' :: (Eq a, StringLike a, Show a) => String -> TagTree a -> [TagTree a]
 topMatching' matcher l@(TagLeaf _) = matchingKids' matcher l
-topMatching' matcher b@(TagBranch _ _ kids) = case matchingKids' matcher b of
-    [] -> concat $ Prelude.map (topMatching' matcher) kids
-    x  -> [b]
+topMatching' matcher b@(TagBranch _ _ kids) =
+    case matchingKids' matcher b of
+        [] -> concatMap (topMatching' matcher) kids
+        x  -> [b]
 
 matchingKids' :: (Eq a, StringLike a, Show a) => String -> TagTree a -> [TagTree a]
-matchingKids' matcher t = case isMatch t matcher of
-    True  -> [t]
-    False -> []
+matchingKids' matcher t = [ t | isMatch t matcher ]
 
 -- | Determine if we can match this tag by full tag description or tag name
 -- @TODO better matchers
 isMatch :: (Eq a, StringLike a, Show a) => TagTree a -> String -> Bool
-isMatch t matcher = (currentTag t) ~== matcher || (TagText $ currentTagText t) ~== (TagText matcher)
+isMatch t matcher =
+    currentTag t ~== matcher || (TagText $ currentTagText t) ~== TagText matcher
 
 -- | Get Tag object (no children) for any TagTree
 currentTag :: TagTree a -> Tag a

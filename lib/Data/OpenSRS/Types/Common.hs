@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Data.OpenSRS.Types.Common where
 
@@ -13,6 +12,6 @@ toUTC Nothing = Nothing
 toUTC (Just ds) = toUTC' ds
 
 toUTC' :: String -> Maybe UTCTime
-toUTC' ds = maybeRead ds
+toUTC' = maybeRead
 
 type DomainName = String

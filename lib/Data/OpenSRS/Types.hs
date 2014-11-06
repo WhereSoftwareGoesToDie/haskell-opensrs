@@ -91,15 +91,15 @@ data DomainAvailability = Available DomainName | Unavailable DomainName deriving
 --------------------------------------------------------------------------------
 -- | Domain registration
 data DomainRegistration = DomainRegistration {
-    registrationAsync :: Maybe String,
-    registrationError :: Maybe String,
+    registrationAsync         :: Maybe String,
+    registrationError         :: Maybe String,
     registrationForcedPending :: Maybe String,
-    registrationID    :: String,
-    registrationQRID  :: Maybe String,
-    registrationCode  :: String,
-    registrationText  :: String,
-    registrationTransferID :: Maybe String,
-    registrationWhois      :: String
+    registrationID            :: String,
+    registrationQRID          :: Maybe String,
+    registrationCode          :: String,
+    registrationText          :: String,
+    registrationTransferID    :: Maybe String,
+    registrationWhois         :: String
 }
 
 --------------------------------------------------------------------------------
