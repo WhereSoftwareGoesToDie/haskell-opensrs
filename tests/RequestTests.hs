@@ -4,10 +4,10 @@ module Main where
 
 import Blaze.ByteString.Builder
 import qualified Data.ByteString.Lazy.Char8 as BSL8
-import Data.Time
 import Data.Map
 import Data.OpenSRS
 import Data.OpenSRS.Types
+import Data.Time
 import Test.Hspec
 import Test.Hspec.Expectations
 import Text.XmlHtml
@@ -22,7 +22,7 @@ suite = do
             res <- doRequest req
             putStrLn $ show res
             pass
-        
+
         it "gets a valid existing domain" $ do
             let req = GetDomain testConfig getDomain
             res <- doRequest req
