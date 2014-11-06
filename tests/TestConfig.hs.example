@@ -7,8 +7,18 @@ import Data.OpenSRS.Types
 testConfig :: SRSConfig
 testConfig = SRSConfig "https://horizon.opensrs.net:55443" "janedoe" "0123456789abcdef" "127.0.0.1"
 
-lookupDomain :: String
-lookupDomain = "thisdomainshouldnotexist.com"
+-- | Lookup domain for an available domain
+lookupDomainAvailable :: String
+lookupDomainAvailable = "thisdomainshouldnotexist-argleblargle.com"
 
-getDomain :: String
-getDomain = "adomainyouownalready.com"
+-- | Lookup domain for an unavailable domain
+lookupDomainUnavailable :: String
+lookupDomainUnavailable = "adomainyouownalready.com"
+
+-- | Get domain we own
+getDomainOwned :: String
+getDomainOwned = "adomainyouownalready.com"
+
+-- | Get domain we don't own
+getDomainNotOurs :: String
+getDomainNotOurs = "google.com"
