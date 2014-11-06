@@ -65,3 +65,26 @@ test-suite xml-tests
                      , time
                      , wreq
                      , xmlhtml
+
+test-suite request-tests
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      tests, lib
+  main-is:             RequestTests.hs
+  default-language:    Haskell2010
+  build-depends:       base >=4.7 && <4.8
+                     , bifunctors
+                     , blaze-builder
+                     , bytestring
+                     , case-insensitive
+                     , containers
+                     , hspec
+                     , hspec-expectations
+                     , http-client
+                     , http-types
+                     , lens < 4.5
+                     , MissingH
+                     , tagsoup
+                     , text
+                     , time
+                     , wreq
+                     , xmlhtml

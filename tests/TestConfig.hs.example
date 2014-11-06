@@ -5,4 +5,10 @@ module TestConfig where
 import Data.OpenSRS.Types
 
 testConfig :: SRSConfig
-testConfig = SRSConfig "http://localhost:55443" "janedoe" "0123456789abcdef" "127.0.0.1"
+testConfig = SRSConfig "https://horizon.opensrs.net:55443" "janedoe" "0123456789abcdef" "127.0.0.1"
+
+lookupDomain :: String
+lookupDomain = "thisdomainshouldnotexist.com"
+
+getDomain :: String
+getDomain = "adomainyouownalready.com"
