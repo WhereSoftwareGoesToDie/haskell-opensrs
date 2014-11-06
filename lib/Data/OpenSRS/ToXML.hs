@@ -29,18 +29,18 @@ import Data.OpenSRS.Types.Config
 requestXML :: SRSRequest -> Document
 requestXML (GetDomain (SRSConfig _ _ _ ip) domainName) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" ip $
+    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" ip
         [("domain", domainName),
          ("type", "all_info"),
          ("limit", "10")]
 requestXML (LookupDomain (SRSConfig _ _ _ ip) domainName) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" ip $
+    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" ip
         [("domain", domainName),
          ("no_cache", "1")]
 requestXML (RenewDomain (SRSConfig _ _ _ ip) domainName autoRenew affiliateID currentExp handleNow period) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" ip $
+    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" ip
         [("domain", domainName),
          ("auto_renew", auto_renew),
          ("affiliate_id", affiliateID),
@@ -58,7 +58,7 @@ requestXML (RegisterDomain (SRSConfig _ _ _ ip) domain cc comments enc lock park
   where
     nodes = wrapRequest $
         genericRequest' "SW_REGISTER" "DOMAIN" ip ++ [itemParent "attributes" [
-            tag "dt_assoc" $ (domainToNodes domain) ++ tldData ++ [
+            tag "dt_assoc" $ domainToNodes domain ++ tldData ++ [
                 itemNode "change_contact" $ boolVal cc,
                 mayPair "comments" comments,
                 mayPair "encoding_type" enc,
@@ -84,10 +84,10 @@ domainToNodes :: Domain -> [Node]
 domainToNodes domain = [
     itemNode "domain" (domainName domain),
     itemParent "contact_set" [
-        tag "dt_assoc" (concat $ Prelude.map contactToNodes $ toList $ domainContactSet domain)
+        tag "dt_assoc" (concatMap contactToNodes $ toList $ domainContactSet domain)
     ],
     itemParent "nameserver_list" [
-        tag "dt_array" (concat $ Prelude.map nsToNodes $ zip [0..] $ domainNameservers domain)
+        tag "dt_array" (concatMap nsToNodes $ zip [0..] $ domainNameservers domain)
         ]]
 
 -- | contacts
@@ -122,7 +122,7 @@ nsToNodes (k, ns) = [
 
 -- | preps some generic request parameters
 genericRequest :: String -> String -> String -> [(String, String)] -> [Node]
-genericRequest action object ip attr = (genericRequest' action object ip) ++ attr'
+genericRequest action object ip attr = genericRequest' action object ip ++ attr'
   where
     attr' = case attr of
         [] -> []
@@ -146,11 +146,11 @@ itemNode k v = Element (Text.pack "item") [(Text.pack "key", Text.pack k)] [Text
 
 -- | Packs up a key pair node with children nodes
 itemParent :: String -> [Node] -> Node
-itemParent k c = Element (Text.pack "item") [(Text.pack "key", Text.pack k)] c
+itemParent k = Element (Text.pack "item") [(Text.pack "key", Text.pack k)]
 
 -- | Straight map to items
 itemMap :: Map String String -> [Node]
-itemMap = Prelude.map (\(k, v) -> itemNode k v) . toList
+itemMap = Prelude.map (uncurry itemNode) . toList
 
 -- | Map of parent nodes
 itemParentMap :: (a -> [Node]) -> Map String a -> [Node]
@@ -158,11 +158,11 @@ itemParentMap fn = Prelude.map (\(k, v) -> itemParent k (fn v)) . toList
 
 -- | Simple tag with children
 tag :: String -> [Node] -> Node
-tag tn c = Element (Text.pack tn) [] c
+tag tn = Element (Text.pack tn) []
 
 -- | Pack a maybe string value into an itemNode
 mayPair :: String -> Maybe String -> Node
-mayPair k v = itemNode k $ maybe "" id v
+mayPair k v = itemNode k $ fromMaybe "" v
 
 -- | Wraps the entire request
 wrapRequest :: [Node] -> [Node]

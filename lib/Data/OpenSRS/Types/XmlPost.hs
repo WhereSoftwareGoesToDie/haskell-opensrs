@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OpenSRS.Types.XmlPost where
 
@@ -29,6 +28,6 @@ xmlPostPayload x req = return $ req {
         HTTP.requestHeaders = h
     }
   where
-    h = (HTTP.requestHeaders req) ++ eh
+    h = HTTP.requestHeaders req ++ eh
     eh = [(CI.mk $ pack "Content-Type", pack "text/xml"),
           (CI.mk $ pack "Accept-Encoding", pack "")]

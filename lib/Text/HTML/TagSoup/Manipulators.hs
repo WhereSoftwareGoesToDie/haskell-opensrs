@@ -35,29 +35,29 @@ itemInnerValue' :: (Eq a, StringLike a, Show a) => [Tag a] -> String
 itemInnerValue' x = tagIdent (x !! 1)
 
 topMatching :: (Eq a, StringLike a, Show a) => String -> [TagTree a] -> [TagTree a]
-topMatching matcher = concat . Prelude.map (topMatching' matcher)
+topMatching matcher = concatMap (topMatching' matcher)
 
 matchingKids :: (Eq a, StringLike a, Show a) => String -> [TagTree a] -> [TagTree a]
-matchingKids matcher = concat . Prelude.map (matchingKids' matcher)
+matchingKids matcher = concatMap (matchingKids' matcher)
 
 kidsWith :: (Eq a, StringLike a, Show a) => String -> [TagTree a] -> [TagTree a]
-kidsWith matcher = concat . Prelude.map (topMatching matcher) . Prelude.map getKids
+kidsWith matcher = concatMap (topMatching matcher) . Prelude.map getKids
 
 topMatching' :: (Eq a, StringLike a, Show a) => String -> TagTree a -> [TagTree a]
 topMatching' matcher l@(TagLeaf _) = matchingKids' matcher l
-topMatching' matcher b@(TagBranch _ _ kids) = case matchingKids' matcher b of
-    [] -> concat $ Prelude.map (topMatching' matcher) kids
-    x  -> [b]
+topMatching' matcher b@(TagBranch _ _ kids) =
+    case matchingKids' matcher b of
+        [] -> concatMap (topMatching' matcher) kids
+        x  -> [b]
 
 matchingKids' :: (Eq a, StringLike a, Show a) => String -> TagTree a -> [TagTree a]
-matchingKids' matcher t = case isMatch t matcher of
-    True  -> [t]
-    False -> []
+matchingKids' matcher t = [ t | isMatch t matcher ]
 
 -- | Determine if we can match this tag by full tag description or tag name
 -- @TODO better matchers
 isMatch :: (Eq a, StringLike a, Show a) => TagTree a -> String -> Bool
-isMatch t matcher = (currentTag t) ~== matcher || (TagText $ currentTagText t) ~== (TagText matcher)
+isMatch t matcher =
+    currentTag t ~== matcher || (TagText $ currentTagText t) ~== TagText matcher
 
 -- | Get Tag object (no children) for any TagTree
 currentTag :: TagTree a -> Tag a
