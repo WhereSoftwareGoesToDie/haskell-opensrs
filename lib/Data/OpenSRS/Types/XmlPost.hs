@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OpenSRS.Types.XmlPost where
 
@@ -14,7 +14,7 @@ import Network.Wreq
 import Network.Wreq.Types
 
 --------------------------------------------------------------------------------
--- | Data Type to encapsulate 
+-- | Data Type to encapsulate
 data XmlPost = XmlPost { xmlData :: BSL8.ByteString }
 
 instance Show XmlPost where

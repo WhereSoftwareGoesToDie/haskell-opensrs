@@ -5,7 +5,7 @@ module Text.HTML.TagSoup.Manipulators where
 import Control.Lens
 import Data.Bifunctor
 import Data.ByteString (ByteString)
-import Data.ByteString.Char8 (pack, unpack, split)
+import Data.ByteString.Char8 (pack, split, unpack)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.CaseInsensitive as CI
 import Data.Hash.MD5
@@ -13,12 +13,12 @@ import Data.List
 import Data.Map
 import Data.Maybe
 
-import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Tree
-import Text.HTML.TagSoup.Entity
 import Data.Char
 import Data.String (IsString)
-import Text.StringLike (fromString, toString, StringLike)
+import Text.HTML.TagSoup
+import Text.HTML.TagSoup.Entity
+import Text.HTML.TagSoup.Tree
+import Text.StringLike (StringLike, fromString, toString)
 
 --------------------------------------------------------------------------------
 -- | Get inner text of the next tag fitting this matcher

@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OpenSRS where
 
 import Control.Lens
 import Data.Bifunctor
 import Data.ByteString (ByteString)
-import Data.ByteString.Char8 (pack, unpack, split)
+import Data.ByteString.Char8 (pack, split, unpack)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.CaseInsensitive as CI
 import Data.Hash.MD5
@@ -19,16 +19,16 @@ import Network.HTTP.Types (HeaderName)
 import Network.Wreq
 import Network.Wreq.Types
 
-import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Tree
-import Text.HTML.TagSoup.Entity
 import Data.Char
 import Data.String (IsString)
 import qualified Data.Text as Text
-import Text.StringLike (fromString, toString, StringLike)
+import Text.HTML.TagSoup
+import Text.HTML.TagSoup.Entity
+import Text.HTML.TagSoup.Tree
+import Text.StringLike (StringLike, fromString, toString)
 
-import Text.XmlHtml
 import Blaze.ByteString.Builder
+import Text.XmlHtml
 
 --------------------------------------------------------------------------------
 
