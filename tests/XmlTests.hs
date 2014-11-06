@@ -44,6 +44,9 @@ testDomain1 = do
         Nameserver (Just "ns1.anchor.net.au") (Just "0") (Just "127.0.0.1"),
         Nameserver (Just "ns2.anchor.net.au") (Just "0") (Just "127.0.0.2") ]
 
+reqXML :: SRSRequest -> String
+reqXML = BSL8.unpack . toLazyByteString . render . requestXML
+
 suite :: Spec
 suite = do
     describe "Domains" $ do
@@ -52,7 +55,12 @@ suite = do
             let req = RegisterDomain testConfig d False Nothing Nothing
                                      False False True True 1
                                      "janedoe" "imasecret" "new" Nothing
-            let rxml = BSL8.unpack $ toLazyByteString $ render $ requestXML req
+            let rxml = reqXML req
+            rxml `shouldContain` "<OPS_envelope>"
+        it "Can be marshalled into an update request" $ do
+            d <- testDomain1
+            let req = UpdateDomain testConfig d
+            let rxml = reqXML req
             rxml `shouldContain` "<OPS_envelope>"
 
 -- | Explicitly pass a test.
