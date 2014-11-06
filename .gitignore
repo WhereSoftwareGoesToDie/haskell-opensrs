@@ -7,3 +7,6 @@ dist/*
 
 # Ignore test configuration
 tests/TestConfig.hs
+
+# Ignore generated files
+/tags
