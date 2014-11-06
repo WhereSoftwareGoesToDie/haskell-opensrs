@@ -1,0 +1,6 @@
+# Ignore all sandbox stuff
+.cabal-sandbox/*
+cabal.sandbox.config
+
+# Ignore builds
+dist/*
