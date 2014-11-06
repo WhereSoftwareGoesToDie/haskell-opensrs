@@ -53,42 +53,72 @@ requestXML (UpdateDomain (SRSConfig _ _ _ ip) domain) = XmlDocument UTF8 doctype
   where
     nodes = wrapRequest $ 
         genericRequest' "UPDATE_ALL_INFO" "DOMAIN" ip ++ [itemParent "attributes" [
-            tag "dt_assoc" [
-                itemNode "domain" (domainName domain),
-                itemParent "contact_set" [
-                    tag "dt_assoc" (concat $ Prelude.map contactToNodes $ toList $ domainContactSet domain)
-                    ],
-                itemParent "nameserver_list" [
-                    tag "dt_array" (concat $ Prelude.map nsToNodes $ zip [0..] $ domainNameservers domain)
-                    ]
+            tag "dt_assoc" $ domainToNodes domain ]]
+requestXML (RegisterDomain (SRSConfig _ _ _ ip) domain cc comments enc lock park priv handle period username password regtype tld) = XmlDocument UTF8 doctype nodes
+  where
+    nodes = wrapRequest $ 
+        genericRequest' "SW_REGISTER" "DOMAIN" ip ++ [itemParent "attributes" [
+            tag "dt_assoc" $ (domainToNodes domain) ++ tldData ++ [
+                itemNode "change_contact" $ boolVal cc,
+                mayPair "comments" comments,
+                mayPair "encoding_type" enc,
+                itemNode "f_lock_domain" $ boolVal lock,
+                itemNode "f_parkp" $ boolVal park,
+                itemNode "f_whois_privacy" $ boolVal priv,
+                itemNode "handle" $ boolVal handle,
+                itemNode "period" $ show period,
+                itemNode "reg_username" username,
+                itemNode "reg_password" password,
+                itemNode "reg_type" regtype
                 ]]]
-    -- contacts
-    contactToNodes (k, c) = [
-        itemParent k [
-            tag "dt_assoc" [
-                mkPair "first_name" contactFirstName c,
-                mkPair "last_name" contactLastName c,
-                mkPair "org_name" contactOrgName c,
-                mkPair "email" contactEmail c,
-                mkPair "phone" contactPhone c,
-                mkPair "fax" contactFax c,
-                mkPair "address1" contactAddress1 c,
-                mkPair "address2" contactAddress2 c,
-                mkPair "address3" contactAddress3 c,
-                mkPair "city" contactCity c,
-                mkPair "state" contactState c,
-                mkPair "postal_code" contactPostalCode c,
-                mkPair "country" contactCountry c
-            ]]]
-    mkPair k fn c = itemNode k $ maybe "" id (fn c)
-    -- nameservers
-    nsToNodes (k, ns) = [
-        itemParent (show k) [
-            tag "dt_assoc" [
-                mkPair "name" nsName ns,
-                mkPair "sortorder" nsSortorder ns,
-                mkPair "ipaddress" nsIPAddr ns
-            ]]]
+    tldData = case tld of
+        Nothing -> []
+        Just tld' -> [itemParent "tld_data" [tag "dt_assoc" $
+            itemParentMap (\vmap -> [tag "dt_assoc" $ itemMap vmap]) tld'
+            ]]
+
+    boolVal b = if b then "1" else "0"
+
+-- | domain
+domainToNodes :: Domain -> [Node]
+domainToNodes domain = [
+    itemNode "domain" (domainName domain),
+    itemParent "contact_set" [
+        tag "dt_assoc" (concat $ Prelude.map contactToNodes $ toList $ domainContactSet domain)
+    ],
+    itemParent "nameserver_list" [
+        tag "dt_array" (concat $ Prelude.map nsToNodes $ zip [0..] $ domainNameservers domain)
+        ]]
+
+-- | contacts
+contactToNodes :: (String, Contact) -> [Node]
+contactToNodes (k, c) = [
+    itemParent k [
+        tag "dt_assoc" [
+            mayPair "first_name" $ contactFirstName c,
+            mayPair "last_name" $ contactLastName c,
+            mayPair "org_name" $ contactOrgName c,
+            mayPair "email" $ contactEmail c,
+            mayPair "phone" $ contactPhone c,
+            mayPair "fax" $ contactFax c,
+            mayPair "address1" $ contactAddress1 c,
+            mayPair "address2" $ contactAddress2 c,
+            mayPair "address3" $ contactAddress3 c,
+            mayPair "city" $ contactCity c,
+            mayPair "state" $ contactState c,
+            mayPair "postal_code" $ contactPostalCode c,
+            mayPair "country" $ contactCountry c
+        ]]]
+
+-- | nameservers
+nsToNodes :: (Int, Nameserver) -> [Node]
+nsToNodes (k, ns) = [
+    itemParent (show k) [
+        tag "dt_assoc" [
+            mayPair "name" $ nsName ns,
+            mayPair "sortorder" $ nsSortorder ns,
+            mayPair "ipaddress" $ nsIPAddr ns
+        ]]]
 
 -- | preps some generic request parameters
 genericRequest :: String -> String -> String -> [(String, String)] -> [Node]
@@ -118,9 +148,21 @@ itemNode k v = Element (Text.pack "item") [(Text.pack "key", Text.pack k)] [Text
 itemParent :: String -> [Node] -> Node
 itemParent k c = Element (Text.pack "item") [(Text.pack "key", Text.pack k)] c
 
+-- | Straight map to items
+itemMap :: Map String String -> [Node]
+itemMap = Prelude.map (\(k, v) -> itemNode k v) . toList
+
+-- | Map of parent nodes
+itemParentMap :: (a -> [Node]) -> Map String a -> [Node]
+itemParentMap fn = Prelude.map (\(k, v) -> itemParent k (fn v)) . toList
+
 -- | Simple tag with children
 tag :: String -> [Node] -> Node
 tag tn c = Element (Text.pack tn) [] c
+
+-- | Pack a maybe string value into an itemNode
+mayPair :: String -> Maybe String -> Node
+mayPair k v = itemNode k $ maybe "" id v
 
 -- | Wraps the entire request
 wrapRequest :: [Node] -> [Node] 

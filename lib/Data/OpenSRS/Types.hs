@@ -21,6 +21,7 @@ module Data.OpenSRS.Types (
     Show
 ) where
 
+import Data.Map
 import Data.OpenSRS.Types.Common
 import Data.OpenSRS.Types.Config
 import Data.OpenSRS.Types.Domain
@@ -46,6 +47,21 @@ data SRSRequest = GetDomain {
 } | UpdateDomain {
     udConfig :: SRSConfig,
     udDomain :: Domain
+} | RegisterDomain {
+    rgConfig        :: SRSConfig,
+    rgDomain        :: Domain,
+    rgChangeContact :: Bool,
+    rgComments      :: Maybe String,
+    rgEncoding      :: Maybe String,
+    rgLock          :: Bool,
+    rgPark          :: Bool,
+    rgWhoisPrivacy  :: Bool,
+    rgHandleNow     :: Bool,
+    rgPeriod        :: Int,
+    rgUsername      :: String,
+    rgPassword      :: String,
+    rgType          :: String,
+    rgTldData       :: Maybe (Map String (Map String String))
 } deriving (Eq, Show)
 
 requestConfig :: SRSRequest -> SRSConfig
@@ -53,6 +69,7 @@ requestConfig (GetDomain c _) = c
 requestConfig (LookupDomain c _) = c
 requestConfig (RenewDomain c _ _ _ _ _ _) = c
 requestConfig (UpdateDomain c _) = c
+requestConfig (RegisterDomain c _ _ _ _ _ _ _ _ _ _ _ _ _) = c
 
 --------------------------------------------------------------------------------
 -- | OpenSRS Response
@@ -70,6 +87,20 @@ data SRSResult = DomainResult Domain
 --------------------------------------------------------------------------------
 -- | Domain availability
 data DomainAvailability = Available DomainName | Unavailable DomainName deriving (Eq, Show)
+
+--------------------------------------------------------------------------------
+-- | Domain registration
+data DomainRegistration = DomainRegistration {
+    registrationAsync :: Maybe String,
+    registrationError :: Maybe String,
+    registrationForcedPending :: Maybe String,
+    registrationID    :: String,
+    registrationQRID  :: Maybe String,
+    registrationCode  :: String,
+    registrationText  :: String,
+    registrationTransferID :: Maybe String,
+    registrationWhois      :: String
+}
 
 --------------------------------------------------------------------------------
 -- | Domain renewal
