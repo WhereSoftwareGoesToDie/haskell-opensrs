@@ -39,52 +39,33 @@ import Text.HTML.TagSoup.Manipulators
 import Data.OpenSRS.ToXML
 
 --------------------------------------------------------------------------------
--- Actually check for something
-
--- usage examples
--- let config = SRSConfig "https://horizon.opensrs.net:55443" "myusername" "mykey" "127.0.0.1"
-
--- let req = LookupDomain config "bigfatchunkybear.info"
--- res <- doRequest req
--- res
-
--- let req2 = GetDomain config "hobbseetest.com"
--- res2 <- doRequest req2
--- res2
-
+-- | Main method for requesting
 doRequest :: SRSRequest -> IO (Either String SRSResult)
-doRequest r@(GetDomain config domainName) = do
+doRequest r@(GetDomain _ _) =
+    doRequest' (DomainResult . parseDomain (gdName r)) r
+doRequest r@(LookupDomain _ _) =
+    doRequest' (DomainAvailabilityResult . parseDomainAvailability (ldName r)) r
+doRequest r@(RenewDomain _ _ _ _ _ _ _) =
+    doRequest' (DomainRenewalResult . parseDomainRenewal (rdName r)) r
+doRequest r@(UpdateDomain _ _) =
+    doRequest' (GenericSuccess . parseSuccess) r
+doRequest _ = return $ Left "This OpenSRS request type has not been implemented yet."
+
+-- | Internal method to p[erform a request and then process it.
+doRequest' :: (String -> SRSResult) -> SRSRequest -> IO (Either String SRSResult)
+doRequest' parser r = do
     res <- postRequest r
-    let b = res^.responseBody
-    let resp = parseResponse $ BSL8.unpack b
+    let unpackedb = BSL8.unpack (res^.responseBody)
+    let resp = parseResponse unpackedb
     return $ if srsSuccess resp
-        then Right $ DomainResult $ parseDomain domainName $ BSL8.unpack b
-        else Left $ responseError resp
-doRequest r@(LookupDomain config domainName) = do
-    res <- postRequest r
-    let b = res^.responseBody
-    let resp = parseResponse $ BSL8.unpack b
-    return $ if srsSuccess resp
-        then Right $ DomainAvailabilityResult $ parseDomainAvailability domainName $ BSL8.unpack b
-        else Left $ responseError resp
-doRequest r@(RenewDomain config domainName _ _ _ _ _) = do
-    res <- postRequest r
-    let b = res^.responseBody
-    let resp = parseResponse $ BSL8.unpack b
-    return $ if srsSuccess resp
-        then Right $ DomainRenewalResult $ parseDomainRenewal domainName $ BSL8.unpack b
-        else Left $ responseError resp
-doRequest r@(UpdateDomain config _) = do
-    res <- postRequest r
-    let b = res^.responseBody
-    let resp = parseResponse $ BSL8.unpack b
-    return $ if srsSuccess resp
-        then Right $ GenericSuccess $ parseSuccess $ BSL8.unpack b
+        then Right $ parser unpackedb
         else Left $ responseError resp
 
+-- | Transforms a SRSResponse into an error string
 responseError :: SRSResponse -> String
 responseError resp = show (srsResponseCode resp) ++ ": " ++ srsResponseText resp
 
+-- | Posts request to OpenSRS
 postRequest :: SRSRequest -> IO (Response BSL8.ByteString)
 postRequest req = postWith opts (srsEndpoint $ requestConfig req) postBody
   where
@@ -96,6 +77,7 @@ postRequest req = postWith opts (srsEndpoint $ requestConfig req) postBody
     postBody = XmlPost ps
     ps = toLazyByteString $ render $ requestXML req
 
+-- | MD5 signature generator for OpenSRS
 md5Wrap :: String -> String -> String
 md5Wrap pk content = md5pack (md5pack (content ++ pk) ++ pk)
   where

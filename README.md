@@ -2,6 +2,18 @@
 
 © Anchor Systems 2014
 
+## Usage
+
+```haskell
+let config = SRSConfig "https://horizon.opensrs.net:55443" "myusername" "mykey" "127.0.0.1"
+
+let req = LookupDomain config "bigfatchunkybear.info"
+res <- doRequest req
+
+let req2 = GetDomain config "hobbseetest.com"
+res2 <- doRequest req2
+```
+
 ## Installation for usage
 
 * `cabal install opensrs`
