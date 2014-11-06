@@ -75,6 +75,13 @@ doRequest r@(RenewDomain config domainName _ _ _ _ _) = do
     case srsSuccess resp of
         True -> return $ Right $ DomainRenewalResult $ parseDomainRenewal domainName $ BSL8.unpack b
         _    -> return $ Left $ responseError resp
+doRequest r@(UpdateDomain config _) = do
+    res <- postRequest r
+    let b = res^.responseBody
+    let resp = parseResponse $ BSL8.unpack b
+    case srsSuccess resp of
+        True -> return $ Right $ GenericSuccess $ parseSuccess $ BSL8.unpack b
+        _    -> return $ Left $ responseError resp
 
 responseError :: SRSResponse -> String
 responseError resp = (show $ srsResponseCode resp) ++ ": " ++ (srsResponseText resp)
@@ -192,3 +199,7 @@ parseDomainRenewal dn s =
   where
     xml = parseTags s
     gt  = getText xml
+
+--------------------------------------------------------------------------------
+parseSuccess :: String -> String
+parseSuccess s = getText (parseTags s) "<item key='response_text'>"

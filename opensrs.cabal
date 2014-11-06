@@ -19,8 +19,9 @@ library
   exposed-modules:     Data.OpenSRS
   other-modules:       Data.OpenSRS.ToXML
                      , Data.OpenSRS.Types
+                     , Data.OpenSRS.Types.Common
                      , Data.OpenSRS.Types.Config
-                     , Data.OpenSRS.Types.DomainGet
+                     , Data.OpenSRS.Types.Domain
                      , Data.OpenSRS.Types.XmlPost
                      , Text.HTML.TagSoup.Manipulators
   -- other-extensions:    

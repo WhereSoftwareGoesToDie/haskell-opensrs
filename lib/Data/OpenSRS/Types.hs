@@ -23,7 +23,7 @@ module Data.OpenSRS.Types (
 
 import Data.OpenSRS.Types.Common
 import Data.OpenSRS.Types.Config
-import Data.OpenSRS.Types.DomainGet
+import Data.OpenSRS.Types.Domain
 import Data.OpenSRS.Types.XmlPost
 import Network.Wreq.Types (Postable)
 
@@ -43,12 +43,16 @@ data SRSRequest = GetDomain {
     rdCurrentExpYear :: Int,
     rdHandleNow      :: Bool,
     rdPeriod         :: Int
+} | UpdateDomain {
+    udConfig :: SRSConfig,
+    udDomain :: Domain
 } deriving (Eq, Show)
 
 requestConfig :: SRSRequest -> SRSConfig
 requestConfig (GetDomain c _) = c
 requestConfig (LookupDomain c _) = c
 requestConfig (RenewDomain c _ _ _ _ _ _) = c
+requestConfig (UpdateDomain c _) = c
 
 --------------------------------------------------------------------------------
 -- | OpenSRS Response
@@ -60,7 +64,8 @@ data SRSResponse = SRSResponse {
 
 data SRSResult = DomainResult Domain
                | DomainAvailabilityResult DomainAvailability
-               | DomainRenewalResult DomainRenewal deriving (Eq, Show)
+               | DomainRenewalResult DomainRenewal
+               | GenericSuccess String deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | Domain availability

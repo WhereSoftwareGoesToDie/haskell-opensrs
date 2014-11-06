@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Data.OpenSRS.Types.DomainGet where
+module Data.OpenSRS.Types.Domain where
 
 import Data.Map
 import Data.OpenSRS.Types.Common
