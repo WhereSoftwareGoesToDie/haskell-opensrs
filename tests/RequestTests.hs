@@ -18,6 +18,19 @@ import TestConfig
 
 suite :: Spec
 suite = do
+    describe "Domain List" $ do
+        it "can list domains with expiry in a given period" $ do
+            t <- getCurrentTime
+            let sd = addUTCTime ((-86400 * 365 * 20) :: NominalDiffTime) t
+            let ed = addUTCTime ((86400 * 365 * 20) :: NominalDiffTime) t
+            let req = ListDomainsByExpiry testConfig sd ed 0 5000
+            res <- doRequest req
+            case res of
+                Right (DomainListResult (DomainList count items _)) -> do
+                    (length items) `shouldBe` count
+                Left e                      -> error $ e
+                _                           -> error "This should never happen."
+
     describe "Domain Lookup/Get" $ do
         it "looks up a valid free domain" $ do
             let req = LookupDomain testConfig lookupDomainAvailable
