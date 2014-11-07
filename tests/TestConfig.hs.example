@@ -65,5 +65,5 @@ testRegistrationDomain = do
                     (Just "2000")
                     (Just "AU")
     nameservers = [
-        Nameserver (Just "ns1.anchor.net.au") (Just "0") (Just "127.0.0.1"),
-        Nameserver (Just "ns2.anchor.net.au") (Just "0") (Just "127.0.0.2") ]
+        Nameserver (Just "ns1.example.com") (Just "0") (Just "127.0.0.1"),
+        Nameserver (Just "ns2.example.com") (Just "0") (Just "127.0.0.2") ]
