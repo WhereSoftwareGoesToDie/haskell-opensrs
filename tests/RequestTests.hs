@@ -52,9 +52,32 @@ suite = do
                 Right (DomainRegistrationResult d) -> do
                     putStrLn $ show d
                     pass
-                    -- (domainName d) `shouldBe` getDomainOwned
                 Left e                      -> error $ e
                 _                           -> error "This should never happen."
+
+    describe "Passwords" $ do
+        it "can change to a valid password" $ do
+            let req = ChangeDomainPassword testConfig passwordTestDomain $ makePassword validPassword
+            res <- doRequest req
+            case res of
+                Right (GenericSuccess _) -> pass
+                Left e                   -> error $ e
+                _                        -> error "This should never happen."
+        
+        it "cannot change to an invalid password" $ do
+            let req = ChangeDomainPassword testConfig passwordTestDomain $ makePassword invalidPassword
+            res <- doRequest req
+            case res of
+                Left _                   -> pass
+                _                        -> error "This should never happen."
+
+        it "can send passwords to a domain contact" $ do
+            let req = SendDomainPassword testConfig passwordTestDomain "admin" False
+            res <- doRequest req
+            case res of
+                Right (GenericSuccess _) -> pass
+                Left e                   -> error $ e
+                _                        -> error "This should never happen."
 
 -- | Explicitly pass a test.
 pass :: Expectation

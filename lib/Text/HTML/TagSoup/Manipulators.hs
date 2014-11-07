@@ -8,11 +8,11 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (pack, split, unpack)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.CaseInsensitive as CI
+import Data.Char
 import Data.Hash.MD5
 import Data.List
 import Data.Map
 import Data.Maybe
-import Data.Char
 import Data.String (IsString)
 import Safe
 import Text.HTML.TagSoup

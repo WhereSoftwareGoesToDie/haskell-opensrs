@@ -19,7 +19,11 @@ module Data.OpenSRS.Types (
 
     XmlPost (..),
     Postable,
-    Show
+    Show,
+
+    Password,
+    makePassword,
+    unPassword
 ) where
 
 import Data.Map
@@ -63,6 +67,15 @@ data SRSRequest = GetDomain {
     rgPassword      :: String,
     rgType          :: String,
     rgTldData       :: Maybe (Map String (Map String String))
+} | ChangeDomainPassword {
+    chpwdConfig   :: SRSConfig,
+    chpwdName     :: DomainName,
+    chpwdPassword :: Password
+} | SendDomainPassword {
+    snpwdConfig  :: SRSConfig,
+    snpwdName    :: DomainName,
+    snpwdContact :: String,
+    snpwdSubuser :: Bool
 } deriving (Eq, Show)
 
 requestConfig :: SRSRequest -> SRSConfig
@@ -71,6 +84,8 @@ requestConfig (LookupDomain c _) = c
 requestConfig (RenewDomain c _ _ _ _ _ _) = c
 requestConfig (UpdateDomain c _) = c
 requestConfig (RegisterDomain c _ _ _ _ _ _ _ _ _ _ _ _ _) = c
+requestConfig (ChangeDomainPassword c _ _) = c
+requestConfig (SendDomainPassword c _ _ _) = c
 
 --------------------------------------------------------------------------------
 -- | OpenSRS Response
@@ -80,11 +95,11 @@ data SRSResponse = SRSResponse {
     srsResponseCode :: Int
 } deriving (Eq, Show)
 
-data SRSResult = DomainResult Domain
-               | DomainAvailabilityResult DomainAvailability
-               | DomainRenewalResult DomainRenewal
-               | DomainRegistrationResult DomainRegistration
-               | GenericSuccess String deriving (Eq, Show)
+data SRSResult = DomainResult { resultGetDomain :: Domain }
+               | DomainAvailabilityResult { resultGetAvailability :: DomainAvailability }
+               | DomainRenewalResult { resultGetRenewal :: DomainRenewal }
+               | DomainRegistrationResult { resultGetRegistration :: DomainRegistration }
+               | GenericSuccess { resultGetMessage :: String } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | Domain availability

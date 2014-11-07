@@ -51,6 +51,10 @@ doRequest r@(RegisterDomain _ _ _ _ _ _ _ _ _ _ _ _ _ _) =
     doRequest' (DomainRegistrationResult . parseDomainRegistration (rgDomain r)) r
 doRequest r@(UpdateDomain _ _) =
     doRequest' (GenericSuccess . parseSuccess) r
+doRequest r@(ChangeDomainPassword _ _ _) =
+    doRequest' (GenericSuccess . parseSuccess) r
+doRequest r@(SendDomainPassword _ _ _ _) =
+    doRequest' (GenericSuccess . parseSuccess) r
 doRequest _ = return $ Left "This OpenSRS request type has not been implemented yet."
 
 -- | Internal method to p[erform a request and then process it.

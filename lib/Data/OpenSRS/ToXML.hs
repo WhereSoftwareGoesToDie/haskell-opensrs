@@ -27,20 +27,20 @@ import Data.OpenSRS.Types.Config
 ----------------------------------------
 -- | Actually generates request XML
 requestXML :: SRSRequest -> Document
-requestXML (GetDomain (SRSConfig _ _ _ ip) domainName) = XmlDocument UTF8 doctype nodes
+requestXML (GetDomain c domainName) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" ip
+    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
         [("domain", domainName),
          ("type", "all_info"),
          ("limit", "10")]
-requestXML (LookupDomain (SRSConfig _ _ _ ip) domainName) = XmlDocument UTF8 doctype nodes
+requestXML (LookupDomain c domainName) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" ip
+    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" (srsIpAddress c)
         [("domain", domainName),
          ("no_cache", "1")]
-requestXML (RenewDomain (SRSConfig _ _ _ ip) domainName autoRenew affiliateID currentExp handleNow period) = XmlDocument UTF8 doctype nodes
+requestXML (RenewDomain c domainName autoRenew affiliateID currentExp handleNow period) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" ip
+    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" (srsIpAddress c)
         [("domain", domainName),
          ("auto_renew", auto_renew),
          ("affiliate_id", affiliateID),
@@ -49,15 +49,15 @@ requestXML (RenewDomain (SRSConfig _ _ _ ip) domainName autoRenew affiliateID cu
          ("period", show period)]
     auto_renew = if autoRenew then "1" else "0"
     handle = if handleNow then "process" else "save"
-requestXML (UpdateDomain (SRSConfig _ _ _ ip) domain) = XmlDocument UTF8 doctype nodes
+requestXML (UpdateDomain c domain) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $
-        genericRequest' "UPDATE_ALL_INFO" "DOMAIN" ip ++ [itemParent "attributes" [
+        genericRequest' "UPDATE_ALL_INFO" "DOMAIN" (srsIpAddress c) ++ [itemParent "attributes" [
             tag "dt_assoc" $ domainToNodes domain ]]
-requestXML (RegisterDomain (SRSConfig _ _ _ ip) domain cc comments enc lock park priv handle period username password regtype tld) = XmlDocument UTF8 doctype nodes
+requestXML (RegisterDomain c domain cc comments enc lock park priv handle period username password regtype tld) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $
-        genericRequest' "SW_REGISTER" "DOMAIN" ip ++ [itemParent "attributes" [
+        genericRequest' "SW_REGISTER" "DOMAIN" (srsIpAddress c) ++ [itemParent "attributes" [
             tag "dt_assoc" $ domainToNodes domain ++ tldData ++ [
                 itemNode "change_contact" $ boolVal cc,
                 mayPair "comments" comments,
@@ -76,8 +76,18 @@ requestXML (RegisterDomain (SRSConfig _ _ _ ip) domain cc comments enc lock park
         Just tld' -> [itemParent "tld_data" [tag "dt_assoc" $
             itemParentMap (\vmap -> [tag "dt_assoc" $ itemMap vmap]) tld'
             ]]
-
-    boolVal b = if b then "1" else "0"
+requestXML (ChangeDomainPassword c domainName password) = XmlDocument UTF8 doctype nodes
+  where
+    nodes = wrapRequest $ genericRequest "CHANGE" "PASSWORD" (srsIpAddress c)
+        [("domain", domainName),
+         ("reg_password", show password)]
+requestXML (SendDomainPassword c domainName sendTo subUser) = XmlDocument UTF8 doctype nodes
+  where
+    nodes = wrapRequest $ genericRequest "CHANGE" "PASSWORD" (srsIpAddress c)
+        [("domain_name", domainName),
+         ("send_to", sendTo),
+         ("sub_user", boolVal subUser)]
+requestXML _ = error "Not implemented yet"
 
 -- | domain
 domainToNodes :: Domain -> [Node]
@@ -163,6 +173,10 @@ tag tn = Element (Text.pack tn) []
 -- | Pack a maybe string value into an itemNode
 mayPair :: String -> Maybe String -> Node
 mayPair k v = itemNode k $ fromMaybe "" v
+
+-- | Makes a quick and dirty boolean value
+boolVal :: Bool -> String
+boolVal b = if b then "1" else "0"
 
 -- | Wraps the entire request
 wrapRequest :: [Node] -> [Node]

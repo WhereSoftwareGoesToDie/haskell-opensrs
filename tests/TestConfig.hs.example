@@ -67,3 +67,15 @@ testRegistrationDomain = do
     nameservers = [
         Nameserver (Just "ns1.example.com") (Just "0") (Just "127.0.0.1"),
         Nameserver (Just "ns2.example.com") (Just "0") (Just "127.0.0.2") ]
+
+-- | Password test domain
+passwordTestDomain :: String
+passwordTestDomain = "automatedtest-passwordchange123.com"
+
+-- | Valid password
+validPassword :: String
+validPassword = "chumbleSpuzz123"
+
+-- | Invalid password
+invalidPassword :: String
+invalidPassword = "Hi; I do not work!"
