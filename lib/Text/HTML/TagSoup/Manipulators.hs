@@ -36,7 +36,9 @@ stringHead :: (a -> String) -> [a] -> String
 stringHead fn = maybe "" fn . headMay
 
 itemInnerValue :: [Tag String] -> String
-itemInnerValue x = fromTagText (x !! 1)
+itemInnerValue x = case (x !! 1) of
+	t@(TagText _) -> fromTagText t
+	_             -> ""
 
 itemInnerValue' :: (Eq a, StringLike a, Show a) => [Tag a] -> String
 itemInnerValue' x = tagIdent (x !! 1)
