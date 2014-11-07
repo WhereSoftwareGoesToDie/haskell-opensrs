@@ -44,10 +44,10 @@ import Data.OpenSRS.ToXML
 --------------------------------------------------------------------------------
 -- | Main method for requesting
 doRequest :: SRSRequest -> IO (Either String SRSResult)
-doRequest r@(AllDomains {}) =
-    doRequest' (DomainListResult . parseDomainList) r
-doRequest r@(ListDomains {}) =
-    doRequest' (DomainListResult . parseDomainList) r
+-- doRequest r@(AllDomains {}) =
+--     doRequest' (DomainListResult . parseDomainList) r
+-- doRequest r@(ListDomains {}) =
+--     doRequest' (DomainListResult . parseDomainList) r
 doRequest r@(ListDomainsByExpiry {}) =
     doRequest' (DomainListResult . parseDomainList) r
 doRequest r@(GetDomain {..}) =
