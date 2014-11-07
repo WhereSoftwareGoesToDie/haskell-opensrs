@@ -2,27 +2,24 @@
 
 module Data.OpenSRS.ToXML (requestXML) where
 
+import Blaze.ByteString.Builder
 import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (pack, split, unpack)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.CaseInsensitive as CI
+import Data.Char
 import Data.Hash.MD5
 import Data.List
 import Data.Map
 import Data.Maybe
-
-import Data.Char
-import Data.String (IsString)
-import qualified Data.Text as Text
-import Text.StringLike (StringLike, fromString, toString)
-
-import Blaze.ByteString.Builder
-import Text.XmlHtml
-
---------------------------------------------------------------------------------
-
 import Data.OpenSRS.Types
 import Data.OpenSRS.Types.Config
+import Data.String (IsString)
+import qualified Data.Text as Text
+import Data.Time
+import System.Locale (defaultTimeLocale)
+import Text.StringLike (StringLike, fromString, toString)
+import Text.XmlHtml
 
 ----------------------------------------
 -- | Actually generates request XML
@@ -31,6 +28,20 @@ requestXML (AllDomains c) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
         [("type", "list")]
+requestXML (ListDomains c p l) = XmlDocument UTF8 doctype nodes
+  where
+    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
+        [("type", "list"),
+         ("page", show p),
+         ("limit", show l)]
+requestXML (ListDomainsByExpiry c ds de p l) = XmlDocument UTF8 doctype nodes
+  where
+    nodes = wrapRequest $ genericRequest "GET_DOMAINS_BY_EXPIREDATE" "DOMAIN" (srsIpAddress c)
+        [("exp_from", dateStr ds),
+         ("exp_to", dateStr de),
+         ("page", show p),
+         ("limit", show l)]
+    dateStr = formatTime defaultTimeLocale "%Y-%m-%d"
 requestXML (GetDomain c domainName) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)

@@ -22,6 +22,8 @@ import Network.Wreq.Types
 import Data.Char
 import Data.String (IsString)
 import qualified Data.Text as Text
+import Data.Time
+import System.Locale (defaultTimeLocale)
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Entity
 import Text.HTML.TagSoup.Tree
@@ -43,6 +45,10 @@ import Data.OpenSRS.ToXML
 -- | Main method for requesting
 doRequest :: SRSRequest -> IO (Either String SRSResult)
 doRequest r@(AllDomains {}) =
+    doRequest' (DomainListResult . parseDomainList) r
+doRequest r@(ListDomains {}) =
+    doRequest' (DomainListResult . parseDomainList) r
+doRequest r@(ListDomainsByExpiry {}) =
     doRequest' (DomainListResult . parseDomainList) r
 doRequest r@(GetDomain {..}) =
     doRequest' (DomainResult . parseDomain requestDomainName) r
@@ -107,10 +113,23 @@ parseResponse s = SRSResponse
 --------------------------------------------------------------------------------
 -- | Parse domain list
 parseDomainList :: String -> DomainList
-parseDomainList s = DomainList (read $ gt "<item key='count'>") [] (gt "<item key='remainder'>" == "1")
+parseDomainList s = DomainList (read $ gt "<item key='total'>")
+                               (Prelude.map makeDomain domainItems)
+                               (gt "<item key='remainder'>" == "1")
   where
     xml = parseTags s
     gt = getText xml
+    xmlt = tagTree xml
+    -- domains
+    domainItems = kidsWith "item" $ topMatching "<item key='exp_domains'>" $ topMatching "<item key='attributes'>" xmlt
+    makeDomain set =
+        let
+            gtc = getText' . flattenTree $ [set]
+        in DomainListDomain (gtc "<item key='name'>")
+                            (toDate $ gtc "<item key='expiredate'>")
+                            (gtc "<item key='f_auto_renew'>" == "Y")
+                            (gtc "<item key='f_let_expire'>" == "Y")
+    toDate = fromJust . parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S"
 
 --------------------------------------------------------------------------------
 -- | Extract domain data

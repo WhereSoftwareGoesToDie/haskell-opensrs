@@ -39,6 +39,16 @@ import Network.Wreq.Types (Postable)
 -- | OpenSRS Request
 data SRSRequest = AllDomains {
     requestConfig        :: SRSConfig
+} | ListDomains {
+    requestConfig        :: SRSConfig,
+    requestPage          :: Int,
+    requestLimit         :: Int
+} | ListDomainsByExpiry {
+    requestConfig        :: SRSConfig,
+    requestStartDate     :: UTCTime,
+    requestEndDate       :: UTCTime,
+    requestPage          :: Int,
+    requestLimit         :: Int
 } | GetDomain {
     requestConfig        :: SRSConfig,
     requestDomainName    :: DomainName
@@ -80,6 +90,8 @@ data SRSRequest = AllDomains {
     requestDomainName    :: DomainName,
     requestSendTo        :: String,
     requestToSubuser     :: Bool
+} | SetCookie {
+    requestConfig        :: SRSConfig
 } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
@@ -106,13 +118,9 @@ data DomainList = DomainList {
 
 data DomainListDomain = DomainListDomain {
     dldName          :: DomainName,
-    dldEncodingType  :: String,
-    dldAutoRenew     :: Bool,
     dldExpireDate    :: UTCTime,
-    dldWhoisPrivacy  :: Bool,
-    dldLetExpire     :: Bool,
-    dldLock          :: Bool,
-    dldSponsoringRSP :: Bool
+    dldAutoRenew     :: Bool,
+    dldLetExpire     :: Bool
 } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
