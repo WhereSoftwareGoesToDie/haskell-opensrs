@@ -12,9 +12,9 @@ import Data.Hash.MD5
 import Data.List
 import Data.Map
 import Data.Maybe
-
 import Data.Char
 import Data.String (IsString)
+import Safe
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Entity
 import Text.HTML.TagSoup.Tree
@@ -23,10 +23,17 @@ import Text.StringLike (StringLike, fromString, toString)
 --------------------------------------------------------------------------------
 -- | Get inner text of the next tag fitting this matcher
 getText :: [Tag String] -> String -> String
-getText xml matcher = itemInnerValue $ head $ sections (~== (matcher :: String)) xml
+getText xml matcher = stringHead itemInnerValue $ sections (~== (matcher :: String)) xml
 
 getText' :: (Eq a, StringLike a, Show a) => [Tag a] -> String -> String
-getText' xml matcher = itemInnerValue' $ head $ sections (~== (matcher :: String)) xml
+getText' xml matcher = stringHead itemInnerValue' $ sections (~== (matcher :: String)) xml
+
+maybeGetText :: [Tag String] -> String -> Maybe String
+maybeGetText xml matcher = fmap itemInnerValue $ headMay $ sections (~== (matcher :: String)) xml
+
+-- | Get a string out of something
+stringHead :: (a -> String) -> [a] -> String
+stringHead fn = maybe "" fn . headMay
 
 itemInnerValue :: [Tag String] -> String
 itemInnerValue x = fromTagText (x !! 1)

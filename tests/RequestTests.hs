@@ -17,7 +17,7 @@ import TestConfig
 
 suite :: Spec
 suite = do
-    describe "Domains" $ do
+    describe "Domain Lookup/Get" $ do
         it "looks up a valid free domain" $ do
             let req = LookupDomain testConfig lookupDomainAvailable
             res <- doRequest req
@@ -41,6 +41,20 @@ suite = do
             let req = GetDomain testConfig getDomainNotOurs
             res <- doRequest req
             (fromLeft res) `shouldContain` "415: Authentication Error."
+
+    describe "Domain Registration" $ do
+        it "registers a domain" $ do
+            (a, b, c, d, e, f, g, h, i, j, k, l, m) <- testRegistrationDomain
+            let req = RegisterDomain testConfig a b c d e f g h i j k l m
+            res <- doRequest req
+            putStrLn $ show res
+            case res of
+                Right (DomainRegistrationResult d) -> do
+                    putStrLn $ show d
+                    pass
+                    -- (domainName d) `shouldBe` getDomainOwned
+                Left e                      -> error $ e
+                _                           -> error "This should never happen."
 
 -- | Explicitly pass a test.
 pass :: Expectation

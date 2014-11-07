@@ -3,6 +3,7 @@ module Data.OpenSRS.Types (
     SRSResponse (..),
     DomainAvailability (..),
     DomainRenewal (..),
+    DomainRegistration (..),
     SRSResult (..),
 
     requestConfig,
@@ -82,6 +83,7 @@ data SRSResponse = SRSResponse {
 data SRSResult = DomainResult Domain
                | DomainAvailabilityResult DomainAvailability
                | DomainRenewalResult DomainRenewal
+               | DomainRegistrationResult DomainRegistration
                | GenericSuccess String deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
@@ -100,7 +102,7 @@ data DomainRegistration = DomainRegistration {
     registrationText          :: String,
     registrationTransferID    :: Maybe String,
     registrationWhois         :: String
-}
+} deriving (Show, Eq)
 
 --------------------------------------------------------------------------------
 -- | Domain renewal

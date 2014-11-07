@@ -47,6 +47,8 @@ doRequest r@(LookupDomain _ _) =
     doRequest' (DomainAvailabilityResult . parseDomainAvailability (ldName r)) r
 doRequest r@(RenewDomain _ _ _ _ _ _ _) =
     doRequest' (DomainRenewalResult . parseDomainRenewal (rdName r)) r
+doRequest r@(RegisterDomain _ _ _ _ _ _ _ _ _ _ _ _ _ _) =
+    doRequest' (DomainRegistrationResult . parseDomainRegistration (rgDomain r)) r
 doRequest r@(UpdateDomain _ _) =
     doRequest' (GenericSuccess . parseSuccess) r
 doRequest _ = return $ Left "This OpenSRS request type has not been implemented yet."
@@ -83,13 +85,8 @@ md5Wrap pk content = md5pack (md5pack (content ++ pk) ++ pk)
   where
     md5pack = md5s . Str
 
-
-
-
-
 --------------------------------------------------------------------------------
--- Parse SRSResponse so we know if it's shit or not
-
+-- | Parse SRSResponse so we know if it's good or not
 parseResponse :: String -> SRSResponse
 parseResponse s = SRSResponse
     (gt "<item key='is_success'>" == "1")
@@ -100,10 +97,7 @@ parseResponse s = SRSResponse
     gt = getText xml
 
 --------------------------------------------------------------------------------
--- Extract domain data
-
-
-
+-- | Extract domain data
 parseDomain :: String -> String -> Domain
 parseDomain dn s = Domain dn
     (gt "<item key='auto_renew'>" == "1")
@@ -150,8 +144,7 @@ parseDomain dn s = Domain dn
                       (Just $ gtc "<item key='ipaddress'>")
 
 --------------------------------------------------------------------------------
--- Extract domain availability data
-
+-- | Extract domain availability data
 parseDomainAvailability :: String -> String -> DomainAvailability
 parseDomainAvailability dn s =
     case getText xml "<item key='status'>" of
@@ -161,6 +154,7 @@ parseDomainAvailability dn s =
     xml = parseTags s
 
 --------------------------------------------------------------------------------
+-- | Extract domain renewal status
 parseDomainRenewal :: String -> String -> DomainRenewal
 parseDomainRenewal dn s =
     case gt "<item key='response_code'>" of
@@ -182,5 +176,27 @@ parseDomainRenewal dn s =
     gt  = getText xml
 
 --------------------------------------------------------------------------------
+-- | Extract domain registration status
+parseDomainRegistration :: Domain -> String -> DomainRegistration
+parseDomainRegistration d s =
+    DomainRegistration (gs "<item key='async_reason'>")
+                       (gs "<item key='error'>")
+                       (gs "<item key='forced_pending'>")
+                       (gt "<item key='id'>")
+                       (gs "<item key='queue_request_id'>")
+                       (gt "<item key='registration_code'>")
+                       (gt "<item key='registration_text'>")
+                       (gs "<item key='transfer_id'>")
+                       (gt "<item key='whois_privacy_state'>")
+    --(domainName d)
+  where
+    xml = parseTags s
+    gt  = getText xml
+    gs m = case gt m of
+        "" -> Nothing
+        x  -> Just x
+
+--------------------------------------------------------------------------------
+-- | Extract status for methods that only require a success/failure response
 parseSuccess :: String -> String
 parseSuccess s = getText (parseTags s) "<item key='response_text'>"

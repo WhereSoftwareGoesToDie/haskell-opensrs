@@ -22,3 +22,48 @@ getDomainOwned = "adomainyouownalready.com"
 -- | Get domain we don't own
 getDomainNotOurs :: String
 getDomainNotOurs = "google.com"
+
+-- | Registration test
+testRegistrationDomain :: IO (Domain, Bool, Maybe String, Maybe String, Bool, Bool, Bool, Bool, Int, String, String, String, Maybe (Map String (Map String String)))
+testRegistrationDomain = do
+    d <- domain
+    return (d,
+            True,
+            Nothing,
+            Nothing,
+            False,
+            False,
+            False,
+            True,
+            2,
+            "webmaster",
+            "aTestingPassWord123",
+            "",
+            Nothing)
+  where
+    domain = do
+        t <- getCurrentTime
+        let t' = addUTCTime ((86400 * 365) :: NominalDiffTime) t
+        return $ Domain "testingdomainregistration124foo.com" True contacts (Just t) Nothing (Just t) (Just "5534") (Just t') True (Just t') nameservers
+    contacts = fromList [
+        ("owner", testc),
+        ("admin", testc),
+        ("billing", testc),
+        ("tech", testc)
+        ]
+    testc = Contact (Just "Jane")
+                    (Just "Doe")
+                    (Just "Frobozz Pty Ltd")
+                    (Just "jane.doe@frobozz.com.au")
+                    (Just "+61.299999999")
+                    Nothing
+                    (Just "Frobozz Pty Ltd")
+                    (Just "Level 50")
+                    (Just "1 George Street")
+                    (Just "Sydney")
+                    (Just "NSW")
+                    (Just "2000")
+                    (Just "AU")
+    nameservers = [
+        Nameserver (Just "ns1.anchor.net.au") (Just "0") (Just "127.0.0.1"),
+        Nameserver (Just "ns2.anchor.net.au") (Just "0") (Just "127.0.0.2") ]
