@@ -32,8 +32,10 @@ type DomainName = String
 newtype Password = Password { unPassword :: String } deriving (Eq)
 
 -- | Construct a Password from a string.
-makePassword :: String -> Password
-makePassword = Password . filter (`elem` allowed)
+makePassword :: String -> Maybe Password
+makePassword p = if all (`elem` allowed) p
+    then Just $ Password p
+    else Nothing
   where
     allowed = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ "[]()!@\\$^,.~|=-+_{}#"
 

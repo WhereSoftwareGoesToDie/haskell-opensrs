@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Data.OpenSRS where
 
@@ -41,19 +42,21 @@ import Data.OpenSRS.ToXML
 --------------------------------------------------------------------------------
 -- | Main method for requesting
 doRequest :: SRSRequest -> IO (Either String SRSResult)
-doRequest r@(GetDomain _ _) =
-    doRequest' (DomainResult . parseDomain (gdName r)) r
-doRequest r@(LookupDomain _ _) =
-    doRequest' (DomainAvailabilityResult . parseDomainAvailability (ldName r)) r
-doRequest r@(RenewDomain _ _ _ _ _ _ _) =
-    doRequest' (DomainRenewalResult . parseDomainRenewal (rdName r)) r
-doRequest r@(RegisterDomain _ _ _ _ _ _ _ _ _ _ _ _ _ _) =
-    doRequest' (DomainRegistrationResult . parseDomainRegistration (rgDomain r)) r
-doRequest r@(UpdateDomain _ _) =
+doRequest r@(AllDomains {}) =
+    doRequest' (DomainListResult . parseDomainList) r
+doRequest r@(GetDomain {..}) =
+    doRequest' (DomainResult . parseDomain requestDomainName) r
+doRequest r@(LookupDomain {..}) =
+    doRequest' (DomainAvailabilityResult . parseDomainAvailability requestDomainName) r
+doRequest r@(RenewDomain {..}) =
+    doRequest' (DomainRenewalResult . parseDomainRenewal requestDomainName) r
+doRequest r@(RegisterDomain {..}) =
+    doRequest' (DomainRegistrationResult . parseDomainRegistration requestDomain) r
+doRequest r@(UpdateDomain {}) =
     doRequest' (GenericSuccess . parseSuccess) r
-doRequest r@(ChangeDomainPassword _ _ _) =
+doRequest r@(ChangeDomainPassword {}) =
     doRequest' (GenericSuccess . parseSuccess) r
-doRequest r@(SendDomainPassword _ _ _ _) =
+doRequest r@(SendDomainPassword {}) =
     doRequest' (GenericSuccess . parseSuccess) r
 doRequest _ = return $ Left "This OpenSRS request type has not been implemented yet."
 
@@ -62,6 +65,7 @@ doRequest' :: (String -> SRSResult) -> SRSRequest -> IO (Either String SRSResult
 doRequest' parser r = do
     res <- postRequest r
     let unpackedb = BSL8.unpack (res^.responseBody)
+    putStrLn unpackedb
     let resp = parseResponse unpackedb
     return $ if srsSuccess resp
         then Right $ parser unpackedb
@@ -96,6 +100,14 @@ parseResponse s = SRSResponse
     (gt "<item key='is_success'>" == "1")
     (gt "<item key='response_text'>")
     (read $ gt "<item key='response_code'>")
+  where
+    xml = parseTags s
+    gt = getText xml
+
+--------------------------------------------------------------------------------
+-- | Parse domain list
+parseDomainList :: String -> DomainList
+parseDomainList s = DomainList (read $ gt "<item key='count'>") [] (gt "<item key='remainder'>" == "1")
   where
     xml = parseTags s
     gt = getText xml

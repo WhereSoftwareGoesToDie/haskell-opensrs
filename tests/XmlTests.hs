@@ -5,6 +5,7 @@ module Main where
 import Blaze.ByteString.Builder
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import Data.Map
+import Data.Maybe
 import Data.OpenSRS.ToXML
 import Data.OpenSRS.Types
 import Data.Time
@@ -53,7 +54,7 @@ suite = do
             d <- testDomain1
             let req = RegisterDomain testConfig d False Nothing Nothing
                                      False False True True 1
-                                     "janedoe" "imasecret" "new" Nothing
+                                     "janedoe" (fromJust $ makePassword "imasecret") "new" Nothing
             let rxml = reqXML req
             rxml `shouldContain` "<OPS_envelope>"
         it "Can be marshalled into an update request" $ do

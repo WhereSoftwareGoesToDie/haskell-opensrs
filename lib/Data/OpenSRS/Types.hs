@@ -6,12 +6,13 @@ module Data.OpenSRS.Types (
     DomainRegistration (..),
     SRSResult (..),
 
-    requestConfig,
-
     toUTC,
     toUTC',
 
     SRSConfig (..),
+
+    DomainList (..),
+    DomainListDomain (..),
 
     Domain (..),
     Contact (..),
@@ -31,61 +32,55 @@ import Data.OpenSRS.Types.Common
 import Data.OpenSRS.Types.Config
 import Data.OpenSRS.Types.Domain
 import Data.OpenSRS.Types.XmlPost
+import Data.Time
 import Network.Wreq.Types (Postable)
 
 --------------------------------------------------------------------------------
 -- | OpenSRS Request
-data SRSRequest = GetDomain {
-    gdConfig :: SRSConfig,
-    gdName   :: DomainName
+data SRSRequest = AllDomains {
+    requestConfig        :: SRSConfig
+} | GetDomain {
+    requestConfig        :: SRSConfig,
+    requestDomainName    :: DomainName
 } | LookupDomain {
-    ldConfig :: SRSConfig,
-    ldName   :: DomainName
+    requestConfig        :: SRSConfig,
+    requestDomainName    :: DomainName
 } | RenewDomain {
-    rdConfig         :: SRSConfig,
-    rdName           :: DomainName,
-    rdAutoRenew      :: Bool,
-    rdAffiliateID    :: String,
-    rdCurrentExpYear :: Int,
-    rdHandleNow      :: Bool,
-    rdPeriod         :: Int
+    requestConfig        :: SRSConfig,
+    requestDomainName    :: DomainName,
+    requestAutoRenew     :: Bool,
+    requestAffiliateID   :: String,
+    requestExpiryYear    :: Int,
+    requestHandleNow     :: Bool,
+    requestPeriod        :: Int
 } | UpdateDomain {
-    udConfig :: SRSConfig,
-    udDomain :: Domain
+    requestConfig        :: SRSConfig,
+    requestDomain        :: Domain
 } | RegisterDomain {
-    rgConfig        :: SRSConfig,
-    rgDomain        :: Domain,
-    rgChangeContact :: Bool,
-    rgComments      :: Maybe String,
-    rgEncoding      :: Maybe String,
-    rgLock          :: Bool,
-    rgPark          :: Bool,
-    rgWhoisPrivacy  :: Bool,
-    rgHandleNow     :: Bool,
-    rgPeriod        :: Int,
-    rgUsername      :: String,
-    rgPassword      :: String,
-    rgType          :: String,
-    rgTldData       :: Maybe (Map String (Map String String))
+    requestConfig        :: SRSConfig,
+    requestDomain        :: Domain,
+    requestChangeContact :: Bool,
+    requestComments      :: Maybe String,
+    requestEncoding      :: Maybe String,
+    requestLock          :: Bool,
+    requestPark          :: Bool,
+    requestWhoisPrivacy  :: Bool,
+    requestHandleNow     :: Bool,
+    requestPeriod        :: Int,
+    requestUsername      :: String,
+    requestPassword      :: Password,
+    requestRegType       :: String,
+    requestTldData       :: Maybe (Map String (Map String String))
 } | ChangeDomainPassword {
-    chpwdConfig   :: SRSConfig,
-    chpwdName     :: DomainName,
-    chpwdPassword :: Password
+    requestConfig        :: SRSConfig,
+    requestDomainName    :: DomainName,
+    requestPassword      :: Password
 } | SendDomainPassword {
-    snpwdConfig  :: SRSConfig,
-    snpwdName    :: DomainName,
-    snpwdContact :: String,
-    snpwdSubuser :: Bool
+    requestConfig        :: SRSConfig,
+    requestDomainName    :: DomainName,
+    requestSendTo        :: String,
+    requestToSubuser     :: Bool
 } deriving (Eq, Show)
-
-requestConfig :: SRSRequest -> SRSConfig
-requestConfig (GetDomain c _) = c
-requestConfig (LookupDomain c _) = c
-requestConfig (RenewDomain c _ _ _ _ _ _) = c
-requestConfig (UpdateDomain c _) = c
-requestConfig (RegisterDomain c _ _ _ _ _ _ _ _ _ _ _ _ _) = c
-requestConfig (ChangeDomainPassword c _ _) = c
-requestConfig (SendDomainPassword c _ _ _) = c
 
 --------------------------------------------------------------------------------
 -- | OpenSRS Response
@@ -95,11 +90,30 @@ data SRSResponse = SRSResponse {
     srsResponseCode :: Int
 } deriving (Eq, Show)
 
-data SRSResult = DomainResult { resultGetDomain :: Domain }
+data SRSResult = DomainListResult { resultGetList :: DomainList }
+               | DomainResult { resultGetDomain :: Domain }
                | DomainAvailabilityResult { resultGetAvailability :: DomainAvailability }
                | DomainRenewalResult { resultGetRenewal :: DomainRenewal }
                | DomainRegistrationResult { resultGetRegistration :: DomainRegistration }
                | GenericSuccess { resultGetMessage :: String } deriving (Eq, Show)
+
+--------------------------------------------------------------------------------
+data DomainList = DomainList {
+    domainListCount :: Int,
+    domainListItems :: [DomainListDomain],
+    domainListMore  :: Bool
+} deriving (Eq, Show)
+
+data DomainListDomain = DomainListDomain {
+    dldName          :: DomainName,
+    dldEncodingType  :: String,
+    dldAutoRenew     :: Bool,
+    dldExpireDate    :: UTCTime,
+    dldWhoisPrivacy  :: Bool,
+    dldLetExpire     :: Bool,
+    dldLock          :: Bool,
+    dldSponsoringRSP :: Bool
+} deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | Domain availability

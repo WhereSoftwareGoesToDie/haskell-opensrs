@@ -6,6 +6,7 @@ import Blaze.ByteString.Builder
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import Data.Either.Utils
 import Data.Map
+import Data.Maybe
 import Data.OpenSRS
 import Data.OpenSRS.Types
 import Data.Time
@@ -57,19 +58,18 @@ suite = do
 
     describe "Passwords" $ do
         it "can change to a valid password" $ do
-            let req = ChangeDomainPassword testConfig passwordTestDomain $ makePassword validPassword
+            let pwd = fromJust $ makePassword validPassword
+            (unPassword pwd) `shouldBe` validPassword
+            let req = ChangeDomainPassword testConfig passwordTestDomain pwd
             res <- doRequest req
             case res of
                 Right (GenericSuccess _) -> pass
                 Left e                   -> error $ e
                 _                        -> error "This should never happen."
         
-        it "cannot change to an invalid password" $ do
-            let req = ChangeDomainPassword testConfig passwordTestDomain $ makePassword invalidPassword
-            res <- doRequest req
-            case res of
-                Left _                   -> pass
-                _                        -> error "This should never happen."
+        it "cannot use an invalid password" $ do
+            let pwd = makePassword invalidPassword
+            pwd `shouldBe` Nothing
 
         it "can send passwords to a domain contact" $ do
             let req = SendDomainPassword testConfig passwordTestDomain "admin" False

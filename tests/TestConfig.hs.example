@@ -2,7 +2,10 @@
 
 module TestConfig where
 
+import Data.Map
+import Data.Maybe
 import Data.OpenSRS.Types
+import Data.Time
 
 testConfig :: SRSConfig
 testConfig = SRSConfig "https://horizon.opensrs.net:55443" "janedoe" "0123456789abcdef" "127.0.0.1"
@@ -24,22 +27,13 @@ getDomainNotOurs :: String
 getDomainNotOurs = "google.com"
 
 -- | Registration test
-testRegistrationDomain :: IO (Domain, Bool, Maybe String, Maybe String, Bool, Bool, Bool, Bool, Int, String, String, String, Maybe (Map String (Map String String)))
+testRegistrationDomain :: IO (Domain, Bool, Maybe String, Maybe String, Bool, Bool, Bool, Bool, Int, String, Password, String, Maybe (Map String (Map String String)))
 testRegistrationDomain = do
     d <- domain
     return (d,
-            True,
-            Nothing,
-            Nothing,
-            False,
-            False,
-            False,
-            True,
-            2,
-            "webmaster",
-            "aTestingPassWord123",
-            "",
-            Nothing)
+            True, Nothing, Nothing, False, False, False, True,
+            2, "webmaster", pwd,
+            "", Nothing)
   where
     domain = do
         t <- getCurrentTime
@@ -67,6 +61,7 @@ testRegistrationDomain = do
     nameservers = [
         Nameserver (Just "ns1.example.com") (Just "0") (Just "127.0.0.1"),
         Nameserver (Just "ns2.example.com") (Just "0") (Just "127.0.0.2") ]
+    pwd = fromJust $ makePassword "aTestingPassWord123"
 
 -- | Password test domain
 passwordTestDomain :: String

@@ -27,6 +27,10 @@ import Data.OpenSRS.Types.Config
 ----------------------------------------
 -- | Actually generates request XML
 requestXML :: SRSRequest -> Document
+requestXML (AllDomains c) = XmlDocument UTF8 doctype nodes
+  where
+    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
+        [("type", "list")]
 requestXML (GetDomain c domainName) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
@@ -68,7 +72,7 @@ requestXML (RegisterDomain c domain cc comments enc lock park priv handle period
                 itemNode "handle" $ boolVal handle,
                 itemNode "period" $ show period,
                 itemNode "reg_username" username,
-                itemNode "reg_password" password,
+                itemNode "reg_password" $ show password,
                 itemNode "reg_type" regtype
                 ]]]
     tldData = case tld of
