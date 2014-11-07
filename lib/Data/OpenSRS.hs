@@ -64,6 +64,8 @@ doRequest r@(ChangeDomainPassword {}) =
     doRequest' (GenericSuccess . parseSuccess) r
 doRequest r@(SendDomainPassword {}) =
     doRequest' (GenericSuccess . parseSuccess) r
+doRequest r@(SetCookie {..}) =
+    doRequest' (CookieResult . parseCookie requestDomainName) r
 doRequest _ = return $ Left "This OpenSRS request type has not been implemented yet."
 
 -- | Internal method to p[erform a request and then process it.
@@ -71,6 +73,7 @@ doRequest' :: (String -> SRSResult) -> SRSRequest -> IO (Either String SRSResult
 doRequest' parser r = do
     res <- postRequest r
     let unpackedb = BSL8.unpack (res^.responseBody)
+    -- putStrLn unpackedb
     let resp = parseResponse unpackedb
     return $ if srsSuccess resp
         then Right $ parser unpackedb
@@ -132,7 +135,7 @@ parseDomainList s = DomainList (read $ gt "<item key='total'>")
 
 --------------------------------------------------------------------------------
 -- | Extract domain data
-parseDomain :: String -> String -> Domain
+parseDomain :: DomainName -> String -> Domain
 parseDomain dn s = Domain dn
     (gt "<item key='auto_renew'>" == "1")
     (fromList . Prelude.map makeContact $ contactSets)
@@ -179,7 +182,7 @@ parseDomain dn s = Domain dn
 
 --------------------------------------------------------------------------------
 -- | Extract domain availability data
-parseDomainAvailability :: String -> String -> DomainAvailability
+parseDomainAvailability :: DomainName -> String -> DomainAvailability
 parseDomainAvailability dn s =
     case getText xml "<item key='status'>" of
         "available" -> Available dn
@@ -189,7 +192,7 @@ parseDomainAvailability dn s =
 
 --------------------------------------------------------------------------------
 -- | Extract domain renewal status
-parseDomainRenewal :: String -> String -> DomainRenewal
+parseDomainRenewal :: DomainName -> String -> DomainRenewal
 parseDomainRenewal dn s =
     case gt "<item key='response_code'>" of
         "200" -> Renewed dn (gt "<item key='admin_email'>")
@@ -222,13 +225,29 @@ parseDomainRegistration d s =
                        (gt "<item key='registration_text'>")
                        (gs "<item key='transfer_id'>")
                        (gt "<item key='whois_privacy_state'>")
-    --(domainName d)
   where
     xml = parseTags s
     gt  = getText xml
     gs m = case gt m of
         "" -> Nothing
         x  -> Just x
+
+--------------------------------------------------------------------------------
+-- | Extract status for methods that only require a success/failure response
+parseCookie :: DomainName -> String -> SRSCookieJar
+parseCookie dn s = SRSCookieJar dn
+                                (gt "<item key='cookie'>")
+                                (read $ gt "<item key='domain_count'>")
+                                (toDate $ gt "<item key='expiredate'>")
+                                (gt "<item key='f_owner'>" == "1")
+                                (gt "<item key='last_access_time'>")
+                                (gt "<item key='last_ip'>")
+                                (gt "<item key='permission'>")
+                                (read $ gt "<item key='waiting_requests_no'>")
+  where
+    xml = parseTags s
+    gt  = getText xml
+    toDate = fromJust . parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S"
 
 --------------------------------------------------------------------------------
 -- | Extract status for methods that only require a success/failure response

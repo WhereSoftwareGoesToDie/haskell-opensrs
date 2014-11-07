@@ -1,4 +1,6 @@
 module Data.OpenSRS.Types (
+    DomainName,
+    
     SRSRequest (..),
     SRSResponse (..),
     DomainAvailability (..),
@@ -24,7 +26,10 @@ module Data.OpenSRS.Types (
 
     Password,
     makePassword,
-    unPassword
+    unPassword,
+
+    SRSCookie,
+    SRSCookieJar (..)
 ) where
 
 import Data.Map
@@ -91,7 +96,10 @@ data SRSRequest = AllDomains {
     requestSendTo        :: String,
     requestToSubuser     :: Bool
 } | SetCookie {
-    requestConfig        :: SRSConfig
+    requestConfig        :: SRSConfig,
+    requestDomainName    :: DomainName,
+    requestUsername      :: String,
+    requestPassword      :: Password
 } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
@@ -107,6 +115,7 @@ data SRSResult = DomainListResult { resultGetList :: DomainList }
                | DomainAvailabilityResult { resultGetAvailability :: DomainAvailability }
                | DomainRenewalResult { resultGetRenewal :: DomainRenewal }
                | DomainRegistrationResult { resultGetRegistration :: DomainRegistration }
+               | CookieResult { resultGetCookieJar :: SRSCookieJar }
                | GenericSuccess { resultGetMessage :: String } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
@@ -155,3 +164,20 @@ data DomainRenewal = Renewed {
     noRenewalName   :: DomainName,
     noRenewalReason :: String
 } deriving (Show, Eq)
+
+--------------------------------------------------------------------------------
+-- | Cookies
+type SRSCookie = String
+
+data SRSCookieJar = SRSCookieJar {
+    cookieName        :: DomainName,
+    cookieStr         :: SRSCookie,
+    cookieDomainCount :: Int,
+    cookieExpiry      :: UTCTime,
+    cookieIsOwner     :: Bool,
+    cookieLastAccess  :: String, -- @TODO UTCDate
+    cookieLastIP      :: String,
+    cookiePermission  :: String,
+    cookieWaitingReqs :: Int
+} deriving (Show, Eq)
+

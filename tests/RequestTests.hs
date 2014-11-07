@@ -92,6 +92,16 @@ suite = do
                 Left e                   -> error $ e
                 _                        -> error "This should never happen."
 
+    describe "Cookies" $ do
+        it "can get a cookie for a valid domain logon" $ do
+            let (d, u, p) = cookieTest
+            let req = SetCookie testConfig d u p
+            res <- doRequest req
+            case res of
+                Right (CookieResult _) -> pass
+                Left e                 -> error $ e
+                _                      -> error "This should never happen."
+
 -- | Explicitly pass a test.
 pass :: Expectation
 pass = return ()

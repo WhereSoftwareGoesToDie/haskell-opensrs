@@ -102,6 +102,12 @@ requestXML (SendDomainPassword c domainName sendTo subUser) = XmlDocument UTF8 d
         [("domain_name", domainName),
          ("send_to", sendTo),
          ("sub_user", boolVal subUser)]
+requestXML (SetCookie c d u p) = XmlDocument UTF8 doctype nodes
+  where
+    nodes = wrapRequest $ genericRequest "SET" "COOKIE" (srsIpAddress c)
+        [("domain_name", d),
+         ("reg_username", u),
+         ("reg_password", show p)]
 requestXML _ = error "Not implemented yet"
 
 -- | domain

@@ -74,3 +74,7 @@ validPassword = "chumbleSpuzz123"
 -- | Invalid password
 invalidPassword :: String
 invalidPassword = "Hi; I do not work!"
+
+-- | Cookie test credentials
+cookieTest :: (String, String, Password)
+cookieTest = ("automatedtest-cookietest-123.com", "webmaster", (fromJust $ makePassword "aVerySimplePassword"))
