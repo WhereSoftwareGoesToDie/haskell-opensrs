@@ -12,6 +12,9 @@ res <- doRequest req
 
 let req2 = GetDomain config "hobbseetest.com"
 res2 <- doRequest req2
+
+let req3 = ModifyDomain config "im-a-little-teapot.com" False (fromList [("data", "whois_privacy_state"), ("state", "enable")]) Nothing
+res3 <- doRequest req3
 ```
 
 ## Installation for usage
