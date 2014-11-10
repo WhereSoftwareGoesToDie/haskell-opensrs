@@ -1,6 +1,6 @@
 module Data.OpenSRS.Types (
     DomainName,
-    
+
     SRSRequest (..),
     SRSResponse (..),
     DomainAvailability (..),
@@ -68,6 +68,12 @@ data SRSRequest = AllDomains {
     requestExpiryYear    :: Int,
     requestHandleNow     :: Bool,
     requestPeriod        :: Int
+} | ModifyDomain {
+    requestConfig        :: SRSConfig,
+    requestDomainName    :: DomainName,
+    requestAffectLinked  :: Bool,
+    requestData          :: Map String String,
+    requestTldData       :: Maybe (Map String (Map String String))
 } | UpdateDomain {
     requestConfig        :: SRSConfig,
     requestDomain        :: Domain

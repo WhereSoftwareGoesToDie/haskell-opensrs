@@ -64,16 +64,25 @@ requestXML (RenewDomain c domainName autoRenew affiliateID currentExp handleNow 
          ("period", show period)]
     auto_renew = if autoRenew then "1" else "0"
     handle = if handleNow then "process" else "save"
+requestXML (ModifyDomain c domainName affect_domains rdata tld) = XmlDocument UTF8 doctype nodes
+  where
+    nodes = wrapRequest $ genericRequest' "MODIFY" "DOMAIN" (srsIpAddress c) ++ (attributes $ [
+        itemNode "domain" domainName,
+        itemNode "affect_domains" $ boolVal affect_domains
+        ] ++ (itemMap rdata) ++ tldData)
+    tldData = case tld of
+        Nothing -> []
+        Just tld' -> [itemParent "tld_data" [tag "dt_assoc" $
+            itemParentMap (\vmap -> [tag "dt_assoc" $ itemMap vmap]) tld'
+            ]]
 requestXML (UpdateDomain c domain) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $
-        genericRequest' "UPDATE_ALL_INFO" "DOMAIN" (srsIpAddress c) ++ [itemParent "attributes" [
-            tag "dt_assoc" $ domainToNodes domain ]]
+        genericRequest' "UPDATE_ALL_INFO" "DOMAIN" (srsIpAddress c) ++ (attributes $ domainToNodes domain)
 requestXML (RegisterDomain c domain cc comments enc lock park priv handle period username password regtype tld) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $
-        genericRequest' "SW_REGISTER" "DOMAIN" (srsIpAddress c) ++ [itemParent "attributes" [
-            tag "dt_assoc" $ domainToNodes domain ++ tldData ++ [
+        genericRequest' "SW_REGISTER" "DOMAIN" (srsIpAddress c) ++ (attributes $ domainToNodes domain ++ tldData ++ [
                 itemNode "change_contact" $ boolVal cc,
                 mayPair "comments" comments,
                 mayPair "encoding_type" enc,
@@ -85,7 +94,7 @@ requestXML (RegisterDomain c domain cc comments enc lock park priv handle period
                 itemNode "reg_username" username,
                 itemNode "reg_password" $ show password,
                 itemNode "reg_type" regtype
-                ]]]
+                ])
     tldData = case tld of
         Nothing -> []
         Just tld' -> [itemParent "tld_data" [tag "dt_assoc" $
@@ -157,7 +166,7 @@ genericRequest action object ip attr = genericRequest' action object ip ++ attr'
   where
     attr' = case attr of
         [] -> []
-        x  -> [ itemParent "attributes" [ tag "dt_assoc" $ Prelude.map attrMap attr ]]
+        x  -> attributes $ Prelude.map attrMap attr
     attrMap (k,v) = itemNode k v
 
 genericRequest' :: String -> String -> String -> [Node]
@@ -190,6 +199,10 @@ itemParentMap fn = Prelude.map (\(k, v) -> itemParent k (fn v)) . toList
 -- | Simple tag with children
 tag :: String -> [Node] -> Node
 tag tn = Element (Text.pack tn) []
+
+-- | Wrap up in attributes tag
+attributes :: [Node] -> [Node]
+attributes n = [itemParent "attributes" [tag "dt_assoc" n]]
 
 -- | Pack a maybe string value into an itemNode
 mayPair :: String -> Maybe String -> Node

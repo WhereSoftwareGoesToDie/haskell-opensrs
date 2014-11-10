@@ -58,6 +58,8 @@ doRequest r@(RenewDomain {..}) =
     doRequest' (DomainRenewalResult . parseDomainRenewal requestDomainName) r
 doRequest r@(RegisterDomain {..}) =
     doRequest' (DomainRegistrationResult . parseDomainRegistration requestDomain) r
+doRequest r@(ModifyDomain {}) =
+    doRequest' (GenericSuccess . parseSuccess) r
 doRequest r@(UpdateDomain {}) =
     doRequest' (GenericSuccess . parseSuccess) r
 doRequest r@(ChangeDomainPassword {}) =
