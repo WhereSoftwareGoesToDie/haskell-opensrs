@@ -6,6 +6,10 @@ module Data.OpenSRS.Types.Common (
 
     DomainName,
 
+    SRSUsername,
+    makeUsername,
+    unUsername,
+
     Password,
     makePassword,
     unPassword
@@ -26,6 +30,24 @@ toUTC' = maybeRead
 
 type DomainName = String
 
+--------------------------------------------------------------------------------
+-- | Wrapper around strings representing passwords.
+-- We need this because OpenSRS limits the types of characters represented in
+-- domain passwords. (See p.985 of API docs)
+newtype SRSUsername = SRSUsername { unUsername :: String } deriving (Eq)
+
+-- | Construct a Password from a string.
+makeUsername :: String -> Maybe SRSUsername
+makeUsername p = if all (`elem` allowed) p
+    then Just $ SRSUsername p
+    else Nothing
+  where
+    allowed = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9']
+
+instance Show SRSUsername where
+    show (SRSUsername u) = u
+
+--------------------------------------------------------------------------------
 -- | Wrapper around strings representing passwords.
 -- We need this because OpenSRS limits the types of characters represented in
 -- domain passwords. (See p.985 of API docs)

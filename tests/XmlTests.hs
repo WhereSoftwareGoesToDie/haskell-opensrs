@@ -54,7 +54,9 @@ suite = do
             d <- testDomain1
             let req = RegisterDomain testConfig d False Nothing Nothing
                                      False False True True 1
-                                     "janedoe" (fromJust $ makePassword "imasecret") "new" Nothing
+                                     (fromJust $ makeUsername "janedoe")
+                                     (fromJust $ makePassword "imasecret")
+                                     NewRegistration Nothing
             let rxml = reqXML req
             rxml `shouldContain` "<OPS_envelope>"
         it "Can be marshalled into an update request" $ do

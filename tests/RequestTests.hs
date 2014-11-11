@@ -69,6 +69,19 @@ suite = do
                 Left e                      -> error $ e
                 _                           -> error "This should never happen."
 
+    describe "Domain Registration" $ do
+        it "renews a domain" $ do
+            let (dname, affid, expyear) = renewTest
+            let req = RenewDomain testConfig dname False affid expyear True 1
+            res <- doRequest req
+            putStrLn $ show res
+            case res of
+                Right (DomainRenewalResult d) -> do
+                    putStrLn $ show d
+                    pass
+                Left e                      -> error $ e
+                _                           -> error "This should never happen."
+
     describe "Passwords" $ do
         it "can change to a valid password" $ do
             let pwd = fromJust $ makePassword validPassword
@@ -101,6 +114,12 @@ suite = do
                 Right (CookieResult _) -> pass
                 Left e                 -> error $ e
                 _                      -> error "This should never happen."
+
+    describe "Domain Updates" $ do
+        it "can set whois privacy" $ do
+            let req = ModifyDomain testConfig modifyTest False (fromList [("data", "whois_privacy_state"), ("state", "enable")]) Nothing
+            res <- doRequest req
+            res `shouldBe` (Right $ GenericSuccess "Whois Privacy successfully enabled")
 
 -- | Explicitly pass a test.
 pass :: Expectation

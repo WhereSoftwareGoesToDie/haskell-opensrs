@@ -6,6 +6,7 @@ module Data.OpenSRS.Types (
     DomainAvailability (..),
     DomainRenewal (..),
     DomainRegistration (..),
+    RegistrationType (..),
     SRSResult (..),
 
     toUTC,
@@ -24,6 +25,10 @@ module Data.OpenSRS.Types (
     Postable,
     Show,
 
+    SRSUsername,
+    makeUsername,
+    unUsername,
+
     Password,
     makePassword,
     unPassword,
@@ -36,6 +41,7 @@ import Data.Map
 import Data.OpenSRS.Types.Common
 import Data.OpenSRS.Types.Config
 import Data.OpenSRS.Types.Domain
+import Data.OpenSRS.Types.DomainList
 import Data.OpenSRS.Types.XmlPost
 import Data.Time
 import Network.Wreq.Types (Postable)
@@ -88,9 +94,9 @@ data SRSRequest = AllDomains {
     requestWhoisPrivacy  :: Bool,
     requestHandleNow     :: Bool,
     requestPeriod        :: Int,
-    requestUsername      :: String,
+    requestUsername      :: SRSUsername,
     requestPassword      :: Password,
-    requestRegType       :: String,
+    requestRegType       :: RegistrationType,
     requestTldData       :: Maybe (Map String (Map String String))
 } | ChangeDomainPassword {
     requestConfig        :: SRSConfig,
@@ -104,9 +110,24 @@ data SRSRequest = AllDomains {
 } | SetCookie {
     requestConfig        :: SRSConfig,
     requestDomainName    :: DomainName,
-    requestUsername      :: String,
+    requestUsername      :: SRSUsername,
     requestPassword      :: Password
 } deriving (Eq, Show)
+
+--------------------------------------------------------------------------------
+-- | Registration types
+data RegistrationType = Landrush
+                      | NewRegistration
+                      | PremiumRegistration
+                      | Transfer
+                      | Sunrise deriving (Eq)
+
+instance Show RegistrationType where
+    show Landrush            = "landrush"
+    show NewRegistration     = "new"
+    show PremiumRegistration = "premium"
+    show Transfer            = "transfer"
+    show Sunrise             = "sunrise"
 
 --------------------------------------------------------------------------------
 -- | OpenSRS Response
@@ -123,20 +144,6 @@ data SRSResult = DomainListResult { resultGetList :: DomainList }
                | DomainRegistrationResult { resultGetRegistration :: DomainRegistration }
                | CookieResult { resultGetCookieJar :: SRSCookieJar }
                | GenericSuccess { resultGetMessage :: String } deriving (Eq, Show)
-
---------------------------------------------------------------------------------
-data DomainList = DomainList {
-    domainListCount :: Int,
-    domainListItems :: [DomainListDomain],
-    domainListMore  :: Bool
-} deriving (Eq, Show)
-
-data DomainListDomain = DomainListDomain {
-    dldName          :: DomainName,
-    dldExpireDate    :: UTCTime,
-    dldAutoRenew     :: Bool,
-    dldLetExpire     :: Bool
-} deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | Domain availability

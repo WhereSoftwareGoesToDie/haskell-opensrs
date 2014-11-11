@@ -26,14 +26,20 @@ getDomainOwned = "adomainyouownalready.com"
 getDomainNotOurs :: String
 getDomainNotOurs = "google.com"
 
+-- | Get domain we don't own
+renewTest :: (String, String, Int)
+renewTest = ("automatedtest-domainrenewal-123.com", "12345", 2015)
+
 -- | Registration test
-testRegistrationDomain :: IO (Domain, Bool, Maybe String, Maybe String, Bool, Bool, Bool, Bool, Int, String, Password, String, Maybe (Map String (Map String String)))
+testRegistrationDomain :: IO (Domain, Bool, Maybe String, Maybe String, Bool, Bool, Bool, Bool, Int, SRSUsername, Password, RegistrationType, Maybe (Map String (Map String String)))
 testRegistrationDomain = do
     d <- domain
     return (d,
-            True, Nothing, Nothing, False, False, False, True,
-            2, "webmaster", pwd,
-            "", Nothing)
+            True, Nothing, Nothing,
+            False, False, False, True,
+            2, un, pwd,
+            NewRegistration,
+            Nothing)
   where
     domain = do
         t <- getCurrentTime
@@ -61,6 +67,7 @@ testRegistrationDomain = do
     nameservers = [
         Nameserver (Just "ns1.example.com") (Just "0") (Just "127.0.0.1"),
         Nameserver (Just "ns2.example.com") (Just "0") (Just "127.0.0.2") ]
+    un = fromJust $ makeUsername "webmaster"
     pwd = fromJust $ makePassword "aTestingPassWord123"
 
 -- | Password test domain
@@ -77,4 +84,10 @@ invalidPassword = "Hi; I do not work!"
 
 -- | Cookie test credentials
 cookieTest :: (String, String, Password)
-cookieTest = ("automatedtest-cookietest-123.com", "webmaster", (fromJust $ makePassword "aVerySimplePassword"))
+cookieTest = ("automatedtest-cookietest-123.com",
+	(fromJust $ makeUsername "webmaster"),
+	(fromJust $ makePassword "aVerySimplePassword"))
+
+-- | Modify tests
+modifyTest :: String
+modifyTest = "automatedtest-whoisprivacy-123.com"

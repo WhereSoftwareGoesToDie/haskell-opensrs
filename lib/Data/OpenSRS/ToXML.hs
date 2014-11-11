@@ -91,9 +91,9 @@ requestXML (RegisterDomain c domain cc comments enc lock park priv handle period
                 itemNode "f_whois_privacy" $ boolVal priv,
                 itemNode "handle" $ boolVal handle,
                 itemNode "period" $ show period,
-                itemNode "reg_username" username,
+                itemNode "reg_username" $ show username,
                 itemNode "reg_password" $ show password,
-                itemNode "reg_type" regtype
+                itemNode "reg_type" $ show regtype
                 ])
     tldData = case tld of
         Nothing -> []
@@ -115,7 +115,7 @@ requestXML (SetCookie c d u p) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "SET" "COOKIE" (srsIpAddress c)
         [("domain", d),
-         ("reg_username", u),
+         ("reg_username", show u),
          ("reg_password", show p)]
 requestXML _ = error "Not implemented yet"
 
