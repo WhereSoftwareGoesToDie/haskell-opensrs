@@ -22,6 +22,7 @@ library
                      , Data.OpenSRS.Types.Common
                      , Data.OpenSRS.Types.Config
                      , Data.OpenSRS.Types.Domain
+                     , Data.OpenSRS.Types.DomainList
                      , Data.OpenSRS.Types.XmlPost
                      , Text.HTML.TagSoup.Manipulators
   -- other-extensions:    

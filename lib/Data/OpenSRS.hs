@@ -1,7 +1,47 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Data.OpenSRS where
+module Data.OpenSRS (
+    doRequest,
+    requestXML,
+
+    DomainName,
+
+    SRSRequest (..),
+    SRSResponse (..),
+    DomainAvailability (..),
+    DomainRenewal (..),
+    DomainRegistration (..),
+    RegistrationType (..),
+    SRSResult (..),
+
+    toUTC,
+    toUTC',
+
+    SRSConfig (..),
+
+    DomainList (..),
+    DomainListDomain (..),
+
+    Domain (..),
+    Contact (..),
+    Nameserver (..),
+
+    XmlPost (..),
+    Postable,
+    Show,
+
+    SRSUsername,
+    makeUsername,
+    unUsername,
+
+    Password,
+    makePassword,
+    unPassword,
+
+    SRSCookie,
+    SRSCookieJar (..)
+) where
 
 import Control.Lens
 import Data.Bifunctor
@@ -242,7 +282,7 @@ parseCookie dn s = SRSCookieJar dn
                                 (read $ gt "<item key='domain_count'>")
                                 (toDate $ gt "<item key='expiredate'>")
                                 (gt "<item key='f_owner'>" == "1")
-                                (gt "<item key='last_access_time'>")
+                                (toDate $ gt "<item key='last_access_time'>")
                                 (gt "<item key='last_ip'>")
                                 (gt "<item key='permission'>")
                                 (read $ gt "<item key='waiting_requests_no'>")
