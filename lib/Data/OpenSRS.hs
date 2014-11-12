@@ -92,6 +92,8 @@ doRequest r@(ListDomainsByExpiry {}) =
     doRequest' (DomainListResult . parseDomainList) r
 doRequest r@(GetDomain {..}) =
     doRequest' (DomainResult . parseDomain requestDomainName) r
+doRequest r@(GetDomainWithCookie {..}) =
+    doRequest' (DomainResult . parseDomain requestDomainName) r
 doRequest r@(LookupDomain {..}) =
     doRequest' (DomainAvailabilityResult . parseDomainAvailability requestDomainName) r
 doRequest r@(RenewDomain {..}) =

@@ -48,6 +48,10 @@ requestXML (GetDomain c domainName) = XmlDocument UTF8 doctype nodes
         [("domain", domainName),
          ("type", "all_info"),
          ("limit", "10")]
+requestXML (GetDomainWithCookie c _ cookie) = XmlDocument UTF8 doctype nodes
+  where
+    nodes = wrapRequest $ cookieRequest "GET" "DOMAIN" (srsIpAddress c) cookie
+        [("type", "all_info")]
 requestXML (LookupDomain c domainName) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" (srsIpAddress c)
@@ -162,11 +166,17 @@ nsToNodes (k, ns) = [
 
 -- | preps some generic request parameters
 genericRequest :: String -> String -> String -> [(String, String)] -> [Node]
-genericRequest action object ip attr = genericRequest' action object ip ++ attr'
+genericRequest action object ip attr = genericRequest' action object ip ++ (makeAttr attr)
+
+-- | preps some cookie-dependent request parameters
+cookieRequest :: String -> String -> String -> SRSCookie -> [(String, String)] -> [Node]
+cookieRequest action object ip cookie attr = cookieRequest' action object ip cookie ++ (makeAttr attr)
+
+makeAttr :: [(String, String)] -> [Node]
+makeAttr attr = case attr of
+    [] -> []
+    x  -> attributes $ Prelude.map attrMap attr
   where
-    attr' = case attr of
-        [] -> []
-        x  -> attributes $ Prelude.map attrMap attr
     attrMap (k,v) = itemNode k v
 
 genericRequest' :: String -> String -> String -> [Node]
@@ -175,6 +185,14 @@ genericRequest' action object ip = [
     itemNode "action" (Prelude.map toUpper action),
     itemNode "object" (Prelude.map toUpper object),
     itemNode "registrant_ip" ip ]
+
+cookieRequest' :: String -> String -> String -> SRSCookie -> [Node]
+cookieRequest' action object ip cookie = [
+    itemNode "protocol" "XCP",
+    itemNode "action" (Prelude.map toUpper action),
+    itemNode "object" (Prelude.map toUpper object),
+    itemNode "registrant_ip" ip,
+    itemNode "cookie" cookie ]
 
 -- | Writes the standard doctype
 doctype :: Maybe DocType

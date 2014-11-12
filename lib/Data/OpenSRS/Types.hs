@@ -63,6 +63,10 @@ data SRSRequest = AllDomains {
 } | GetDomain {
     requestConfig        :: SRSConfig,
     requestDomainName    :: DomainName
+} | GetDomainWithCookie {
+    requestConfig        :: SRSConfig,
+    requestDomainName    :: DomainName,
+    requestCookie        :: SRSCookie
 } | LookupDomain {
     requestConfig        :: SRSConfig,
     requestDomainName    :: DomainName

@@ -115,6 +115,22 @@ suite = do
                 Left e                 -> error $ e
                 _                      -> error "This should never happen."
 
+        it "gets a domain using a cookie" $ do
+            let (d, u, p) = cookieTest
+            let req = SetCookie testConfig d u p
+            res <- doRequest req
+            case res of
+                Right (CookieResult jar) -> do
+                    let req2 = GetDomainWithCookie testConfig d (cookieStr jar)
+                    res2 <- doRequest req2
+                    case res2 of
+                        Right (DomainResult d') -> do
+                            (domainName d') `shouldBe` d
+                        Left e                      -> error $ e
+                        _                           -> error "This should never happen."
+                Left e                 -> error $ e
+                _                      -> error "This should never happen."
+
     describe "Domain Updates" $ do
         it "can set whois privacy" $ do
             let req = ModifyDomain testConfig modifyTest False (fromList [("data", "whois_privacy_state"), ("state", "enable")]) Nothing
