@@ -188,7 +188,7 @@ data SRSCookieJar = SRSCookieJar {
     cookieDomainCount :: Int,
     cookieExpiry      :: UTCTime,
     cookieIsOwner     :: Bool,
-    cookieLastAccess  :: UTCTime,
+    cookieLastAccess  :: Maybe UTCTime,
     cookieLastIP      :: String,
     cookiePermission  :: String,
     cookieWaitingReqs :: Int

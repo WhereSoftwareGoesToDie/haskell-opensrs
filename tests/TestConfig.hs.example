@@ -83,7 +83,7 @@ invalidPassword :: String
 invalidPassword = "Hi; I do not work!"
 
 -- | Cookie test credentials
-cookieTest :: (String, String, Password)
+cookieTest :: (String, SRSUsername, Password)
 cookieTest = ("automatedtest-cookietest-123.com",
 	(fromJust $ makeUsername "webmaster"),
 	(fromJust $ makePassword "aVerySimplePassword"))

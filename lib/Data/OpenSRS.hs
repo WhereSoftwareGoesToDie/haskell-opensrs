@@ -282,14 +282,15 @@ parseCookie dn s = SRSCookieJar dn
                                 (read $ gt "<item key='domain_count'>")
                                 (toDate $ gt "<item key='expiredate'>")
                                 (gt "<item key='f_owner'>" == "1")
-                                (toDate $ gt "<item key='last_access_time'>")
+                                (toDate' $ gt "<item key='last_access_time'>")
                                 (gt "<item key='last_ip'>")
                                 (gt "<item key='permission'>")
                                 (read $ gt "<item key='waiting_requests_no'>")
   where
     xml = parseTags s
     gt  = getText xml
-    toDate = fromJust . parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S"
+    toDate = fromJust . toDate'
+    toDate' = parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S"
 
 --------------------------------------------------------------------------------
 -- | Extract status for methods that only require a success/failure response
