@@ -13,12 +13,11 @@ data Domain = Domain {
     domainAutoRenew     :: Bool,
     domainContactSet    :: Map String Contact,
     domainUpdateDate    :: Maybe UTCTime,
-    domainSponsoringRsp :: Maybe String,
+    domainSponsoringRsp :: Bool,
     domainCreateDate    :: Maybe UTCTime,
     domainAffiliateID   :: Maybe String,
-    domainExpireDate    :: Maybe UTCTime,
     domainLetExpire     :: Bool,
-    domainRegExpireDate :: Maybe UTCTime,
+    domainExpireDate    :: Maybe UTCTime,
     domainNameservers   :: [Nameserver]
 } deriving (Show, Eq)
 

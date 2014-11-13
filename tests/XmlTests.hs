@@ -19,7 +19,7 @@ testDomain1 :: IO Domain
 testDomain1 = do
     t <- getCurrentTime
     let t' = addUTCTime ((86400 * 365) :: NominalDiffTime) t
-    return $ Domain "foo.com" True contacts (Just t) Nothing (Just t) (Just "5534") (Just t') True (Just t') nameservers
+    return $ Domain "foo.com" True contacts (Just t) True (Just t) (Just "5534") True (Just t') nameservers
   where
     contacts = fromList [
         ("owner", testc),

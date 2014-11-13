@@ -41,7 +41,9 @@ itemInnerValue x = case (x !! 1) of
 	_             -> ""
 
 itemInnerValue' :: (Eq a, StringLike a, Show a) => [Tag a] -> String
-itemInnerValue' x = tagIdent (x !! 1)
+itemInnerValue' x = case (x !! 1) of
+	t@(TagText _) -> tagIdent t
+	_             -> ""
 
 topMatching :: (Eq a, StringLike a, Show a) => String -> [TagTree a] -> [TagTree a]
 topMatching matcher = concatMap (topMatching' matcher)
