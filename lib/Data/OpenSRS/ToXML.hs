@@ -59,7 +59,7 @@ requestXML (LookupDomain c domainName) = XmlDocument UTF8 doctype nodes
          ("no_cache", "1")]
 requestXML (RenewDomain c domainName autoRenew affiliateID currentExp handleNow period) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" (srsIpAddress c)
+    nodes = wrapRequest $ genericRequest "RENEW" "DOMAIN" (srsIpAddress c)
         [("domain", domainName),
          ("auto_renew", auto_renew),
          ("affiliate_id", affiliateID),

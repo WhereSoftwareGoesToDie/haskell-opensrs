@@ -129,7 +129,9 @@ responseError resp = show (srsResponseCode resp) ++ ": " ++ srsResponseText resp
 
 -- | Posts request to OpenSRS
 postRequest :: SRSRequest -> IO (Response BSL8.ByteString)
-postRequest req = postWith opts (srsEndpoint $ requestConfig req) postBody
+postRequest req = do
+    -- putStrLn $ show ps
+    postWith opts (srsEndpoint $ requestConfig req) postBody
   where
     opts = defaults
             & header "X-Username" .~ [pack $ srsUsername $ requestConfig req]
@@ -245,13 +247,13 @@ parseDomainRenewal dn s =
                             (Just $ gt "<item key='queue_request_id'>")
                             (Just $ gt "<item key='id'>")
                             (gt "<item key='registration_expiration_date'>")
-        "480" -> NotRenewed dn "Renewals not enabled for this TLD"
-        "555" -> NotRenewed dn "Domain already renewed"
-        "541" -> NotRenewed dn "Provided expiration year does not match registry value"
+        "480" -> NotRenewed dn 480 "Renewals not enabled for this TLD"
+        "555" -> NotRenewed dn 555 "Domain already renewed"
+        "541" -> NotRenewed dn 541 "Provided expiration year does not match registry value"
         "400" -> case gt "<item key='response_text'>" of
-            "Fatal Server Error" -> NotRenewed dn "Fatal error at registry"
-            _                    -> NotRenewed dn "Renewal request already submitted, cannot renew until request completed"
-        _     -> NotRenewed dn (gt "<item key='response_text'>")
+            "Fatal Server Error" -> NotRenewed dn 400 "Fatal error at registry"
+            _                    -> NotRenewed dn 400 "Renewal request already submitted, cannot renew until request completed"
+        x     -> NotRenewed dn (read x) (gt "<item key='response_text'>")
   where
     xml = parseTags s
     gt  = getText xml

@@ -179,6 +179,7 @@ data DomainRenewal = Renewed {
     renewalNewExpiration :: String
 } | NotRenewed {
     noRenewalName   :: DomainName,
+    noRenewalCode   :: Int,
     noRenewalReason :: String
 } deriving (Show, Eq)
 
