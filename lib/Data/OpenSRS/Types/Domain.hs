@@ -44,3 +44,5 @@ data Nameserver = Nameserver {
     nsSortorder :: Maybe String,
     nsIPAddr    :: Maybe String
 } deriving (Show, Eq)
+
+type TLDData = Map String (Map String String)

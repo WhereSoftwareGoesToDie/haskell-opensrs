@@ -26,6 +26,7 @@ module Data.OpenSRS (
     Domain (..),
     Contact (..),
     Nameserver (..),
+    TLDData,
 
     XmlPost (..),
     Postable,
@@ -94,6 +95,8 @@ doRequest r@(GetDomain {..}) =
     doRequest' (DomainResult . parseDomain requestDomainName) r
 doRequest r@(GetDomainWithCookie {..}) =
     doRequest' (DomainResult . parseDomain requestDomainName) r
+doRequest r@(GetDomainTldData {..}) = do
+    doRequest' (TldDataResult . parseTldDataDict) r
 doRequest r@(LookupDomain {..}) =
     doRequest' (DomainAvailabilityResult . parseDomainAvailability requestDomainName) r
 doRequest r@(RenewDomain {..}) =
@@ -117,7 +120,7 @@ doRequest' :: (String -> SRSResult) -> SRSRequest -> IO (Either String SRSResult
 doRequest' parser r = do
     res <- postRequest r
     let unpackedb = BSL8.unpack (res^.responseBody)
-    -- putStrLn unpackedb
+    putStrLn unpackedb
     let resp = parseResponse unpackedb
     return $ if srsSuccess resp
         then Right $ parser unpackedb
@@ -276,6 +279,31 @@ parseDomainRegistration d s =
     gs m = case gt m of
         "" -> Nothing
         x  -> Just x
+
+--------------------------------------------------------------------------------
+-- | Extract TLD Data as a key/value dictionary.
+parseTldDataDict :: String -> TLDData
+parseTldDataDict s = fromList $ Prelude.map makeTld $ Prelude.map (\x -> [x]) tldroots
+  where
+    xml = parseTags s
+    gt  = getText xml
+    xmlt = tagTree xml
+    -- top level tld items
+    tldroots = kidsWith "item" $ topMatching "<item key='tld_data'>" xmlt
+    makeTld t =
+        let
+            k = fromJust $ Data.List.lookup "key" $ currentTagAttr $ head t
+            kids = kidsWith "item" $ topMatching "dt_assoc" t
+            v = fromList $ Prelude.map makeItems $ Prelude.map (\x -> [x]) kids
+            in
+                (k, v)
+    -- 2nd level
+    makeItems t =
+        let
+            k = fromJust $ Data.List.lookup "key" $ currentTagAttr $ head t
+            v = itemInnerValue $ flattenTree t
+            in
+                (k, v)
 
 --------------------------------------------------------------------------------
 -- | Extract status for methods that only require a success/failure response

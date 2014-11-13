@@ -20,6 +20,7 @@ module Data.OpenSRS.Types (
     Domain (..),
     Contact (..),
     Nameserver (..),
+    TLDData,
 
     XmlPost (..),
     Postable,
@@ -67,6 +68,9 @@ data SRSRequest = AllDomains {
     requestConfig        :: SRSConfig,
     requestDomainName    :: DomainName,
     requestCookie        :: SRSCookie
+} | GetDomainTldData {
+    requestConfig        :: SRSConfig,
+    requestDomainName    :: DomainName
 } | LookupDomain {
     requestConfig        :: SRSConfig,
     requestDomainName    :: DomainName
@@ -83,7 +87,7 @@ data SRSRequest = AllDomains {
     requestDomainName    :: DomainName,
     requestAffectLinked  :: Bool,
     requestData          :: Map String String,
-    requestTldData       :: Maybe (Map String (Map String String))
+    requestTldData       :: Maybe TLDData
 } | UpdateDomain {
     requestConfig        :: SRSConfig,
     requestDomain        :: Domain
@@ -101,7 +105,7 @@ data SRSRequest = AllDomains {
     requestUsername      :: SRSUsername,
     requestPassword      :: Password,
     requestRegType       :: RegistrationType,
-    requestTldData       :: Maybe (Map String (Map String String))
+    requestTldData       :: Maybe TLDData
 } | ChangeDomainPassword {
     requestConfig        :: SRSConfig,
     requestDomainName    :: DomainName,
@@ -147,6 +151,7 @@ data SRSResult = DomainListResult { resultGetList :: DomainList }
                | DomainRenewalResult { resultGetRenewal :: DomainRenewal }
                | DomainRegistrationResult { resultGetRegistration :: DomainRegistration }
                | CookieResult { resultGetCookieJar :: SRSCookieJar }
+               | TldDataResult { resultGetTldData :: TLDData }
                | GenericSuccess { resultGetMessage :: String } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------

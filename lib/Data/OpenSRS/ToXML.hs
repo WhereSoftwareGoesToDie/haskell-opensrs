@@ -48,6 +48,12 @@ requestXML (GetDomain c domainName) = XmlDocument UTF8 doctype nodes
         [("domain", domainName),
          ("type", "all_info"),
          ("limit", "10")]
+requestXML (GetDomainTldData c domainName) = XmlDocument UTF8 doctype nodes
+  where
+    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
+        [("domain", domainName),
+         ("type", "tld_data"),
+         ("limit", "10")]
 requestXML (GetDomainWithCookie c _ cookie) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ cookieRequest "GET" "DOMAIN" (srsIpAddress c) cookie
