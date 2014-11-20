@@ -10,10 +10,11 @@ import Data.OpenSRS.ToXML
 import Data.OpenSRS.Types
 import Data.Time
 import Test.Hspec
-import Test.Hspec.Expectations
 import Text.XmlHtml
 
-import TestConfig
+-- | API configuration to use in these (non-integration) tests.
+testConfig :: SRSConfig
+testConfig = SRSConfig "https://horizon.opensrs.net:55443" "janedoe" "0123456789abcdef" "127.0.0.1"
 
 testDomain1 :: IO Domain
 testDomain1 = do
@@ -59,19 +60,12 @@ suite = do
                                      NewRegistration Nothing
             let rxml = reqXML req
             rxml `shouldContain` "<OPS_envelope>"
+
         it "Can be marshalled into an update request" $ do
             d <- testDomain1
             let req = UpdateDomain testConfig d
             let rxml = reqXML req
             rxml `shouldContain` "<OPS_envelope>"
 
--- | Explicitly pass a test.
-pass :: Expectation
-pass = return ()
-
 main :: IO ()
-main = do
-    res <- hspec suite
-    return ()
-
-
+main = hspec suite

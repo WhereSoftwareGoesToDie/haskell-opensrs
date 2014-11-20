@@ -30,7 +30,6 @@ module Data.OpenSRS (
 
     XmlPost (..),
     Postable,
-    Show,
 
     SRSUsername,
     makeUsername,
@@ -45,30 +44,20 @@ module Data.OpenSRS (
 ) where
 
 import Control.Lens
-import Data.Bifunctor
-import Data.ByteString (ByteString)
-import Data.ByteString.Char8 (pack, split, unpack)
+import Data.ByteString.Char8 (pack)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
-import qualified Data.CaseInsensitive as CI
 import Data.Hash.MD5
 import Data.List
 import Data.Map
 import Data.Maybe
 
-import qualified Network.HTTP.Client as HTTP
-import Network.HTTP.Types (HeaderName)
 import Network.Wreq
 import Network.Wreq.Types
 
-import Data.Char
-import Data.String (IsString)
-import qualified Data.Text as Text
 import Data.Time
 import System.Locale (defaultTimeLocale)
 import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Entity
 import Text.HTML.TagSoup.Tree
-import Text.StringLike (StringLike, fromString, toString)
 
 import Blaze.ByteString.Builder
 import Text.XmlHtml
@@ -76,14 +65,13 @@ import Text.XmlHtml
 --------------------------------------------------------------------------------
 
 import Data.OpenSRS.Types
-import Data.OpenSRS.Types.XmlPost
 
 import Text.HTML.TagSoup.Manipulators
 
 import Data.OpenSRS.ToXML
 
 --------------------------------------------------------------------------------
--- | Main method for requesting
+-- | Submit a request to the OpenSRS API for processing.
 doRequest :: SRSRequest -> IO (Either String SRSResult)
 -- doRequest r@(AllDomains {}) =
 --     doRequest' (DomainListResult . parseDomainList) r
@@ -95,7 +83,7 @@ doRequest r@(GetDomain {..}) =
     doRequest' (DomainResult . parseDomain requestDomainName) r
 doRequest r@(GetDomainWithCookie {..}) =
     doRequest' (DomainResult . parseDomain requestDomainName) r
-doRequest r@(GetDomainTldData {..}) = do
+doRequest r@(GetDomainTldData {..}) =
     doRequest' (TldDataResult . parseTldDataDict) r
 doRequest r@(LookupDomain {..}) =
     doRequest' (DomainAvailabilityResult . parseDomainAvailability requestDomainName) r
@@ -115,11 +103,11 @@ doRequest r@(SetCookie {..}) =
     doRequest' (CookieResult . parseCookie requestDomainName) r
 doRequest _ = return $ Left "This OpenSRS request type has not been implemented yet."
 
--- | Internal method to p[erform a request and then process it.
+-- | Internal method to perform a request and then process it.
 doRequest' :: (String -> SRSResult) -> SRSRequest -> IO (Either String SRSResult)
 doRequest' parser r = do
     res <- postRequest r
-    let unpackedb = BSL8.unpack (res^.responseBody)
+    let unpackedb = BSL8.unpack (res ^. responseBody)
     putStrLn unpackedb
     let resp = parseResponse unpackedb
     return $ if srsSuccess resp
@@ -132,8 +120,7 @@ responseError resp = show (srsResponseCode resp) ++ ": " ++ srsResponseText resp
 
 -- | Posts request to OpenSRS
 postRequest :: SRSRequest -> IO (Response BSL8.ByteString)
-postRequest req = do
-    -- putStrLn $ show ps
+postRequest req =
     postWith opts (srsEndpoint $ requestConfig req) postBody
   where
     opts = defaults
@@ -173,9 +160,9 @@ parseDomainList s = DomainList (read $ gt "<item key='total'>")
     xmlt = tagTree xml
     -- domains
     domainItems = kidsWith "item" $ topMatching "<item key='exp_domains'>" $ topMatching "<item key='attributes'>" xmlt
-    makeDomain set =
+    makeDomain domains =
         let
-            gtc = getText' . flattenTree $ [set]
+            gtc = getText' . flattenTree $ [domains]
         in DomainListDomain (gtc "<item key='name'>")
                             (toDate $ gtc "<item key='expiredate'>")
                             (gtc "<item key='f_auto_renew'>" == "Y")
@@ -201,10 +188,10 @@ parseDomain dn s = Domain dn
     xmlt = tagTree xml
     -- contacts
     contactSets = kidsWith "item" $ topMatching "<item key='contact_set'>" $ topMatching "<item key='attributes'>" xmlt
-    makeContact set =
+    makeContact contacts =
         let
-            gtc = getText' . flattenTree $ [set]
-            k = fromJust $ Data.List.lookup "key" $ currentTagAttr set
+            gtc = getText' . flattenTree $ [contacts]
+            k = fromJust $ Data.List.lookup "key" $ currentTagAttr contacts
             v = Contact (Just $ gtc "<item key='first_name'>")
                     (Just $ gtc "<item key='last_name'>")
                     (Just $ gtc "<item key='org_name'>")
@@ -221,9 +208,9 @@ parseDomain dn s = Domain dn
         in (k, v)
     -- namespaces
     nameserverSets = kidsWith "dt_assoc" $ kidsWith "item" $ topMatching "<item key='nameserver_list'>" $ topMatching "<item key='attributes'>" xmlt
-    makeNameserver set =
+    makeNameserver nameservers =
         let
-            gtc = getText' . flattenTree $ [set]
+            gtc = getText' . flattenTree $ [nameservers]
         in Nameserver (Just $ gtc "<item key='name'>")
                       (Just $ gtc "<item key='sortorder'>")
                       (Just $ gtc "<item key='ipaddress'>")
@@ -263,7 +250,7 @@ parseDomainRenewal dn s =
 --------------------------------------------------------------------------------
 -- | Extract domain registration status
 parseDomainRegistration :: Domain -> String -> DomainRegistration
-parseDomainRegistration d s =
+parseDomainRegistration _ s =
     DomainRegistration (gs "<item key='async_reason'>")
                        (gs "<item key='error'>")
                        (gs "<item key='forced_pending'>")
@@ -283,27 +270,24 @@ parseDomainRegistration d s =
 --------------------------------------------------------------------------------
 -- | Extract TLD Data as a key/value dictionary.
 parseTldDataDict :: String -> TLDData
-parseTldDataDict s = fromList $ Prelude.map makeTld $ Prelude.map (\x -> [x]) tldroots
+parseTldDataDict s = fromList . Prelude.map (makeTld . return) $ tldroots
   where
     xml = parseTags s
-    gt  = getText xml
     xmlt = tagTree xml
-    -- top level tld items
+    -- top level TLD items
     tldroots = kidsWith "item" $ topMatching "<item key='tld_data'>" xmlt
     makeTld t =
         let
             k = fromJust $ Data.List.lookup "key" $ currentTagAttr $ head t
             kids = kidsWith "item" $ topMatching "dt_assoc" t
-            v = fromList $ Prelude.map makeItems $ Prelude.map (\x -> [x]) kids
-            in
-                (k, v)
+            v = fromList $ Prelude.map (makeItems . return) kids
+        in (k, v)
     -- 2nd level
     makeItems t =
         let
             k = fromJust $ Data.List.lookup "key" $ currentTagAttr $ head t
             v = itemInnerValue $ flattenTree t
-            in
-                (k, v)
+        in (k, v)
 
 --------------------------------------------------------------------------------
 -- | Extract status for methods that only require a success/failure response

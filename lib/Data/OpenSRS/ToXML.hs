@@ -2,23 +2,13 @@
 
 module Data.OpenSRS.ToXML (requestXML) where
 
-import Blaze.ByteString.Builder
-import Data.ByteString (ByteString)
-import Data.ByteString.Char8 (pack, split, unpack)
-import qualified Data.ByteString.Lazy.Char8 as BSL8
-import qualified Data.CaseInsensitive as CI
 import Data.Char
-import Data.Hash.MD5
-import Data.List
 import Data.Map
 import Data.Maybe
 import Data.OpenSRS.Types
-import Data.OpenSRS.Types.Config
-import Data.String (IsString)
 import qualified Data.Text as Text
 import Data.Time
 import System.Locale (defaultTimeLocale)
-import Text.StringLike (StringLike, fromString, toString)
 import Text.XmlHtml
 
 ----------------------------------------
@@ -42,44 +32,45 @@ requestXML (ListDomainsByExpiry c ds de p l) = XmlDocument UTF8 doctype nodes
          ("page", show p),
          ("limit", show l)]
     dateStr = formatTime defaultTimeLocale "%Y-%m-%d"
-requestXML (GetDomain c domainName) = XmlDocument UTF8 doctype nodes
+requestXML (GetDomain c domain_name) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
-        [("domain", domainName),
+        [("domain", domain_name),
          ("type", "all_info"),
          ("limit", "10")]
-requestXML (GetDomainTldData c domainName) = XmlDocument UTF8 doctype nodes
+requestXML (GetDomainTldData c domain_name) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
-        [("domain", domainName),
+        [("domain", domain_name),
          ("type", "tld_data"),
          ("limit", "10")]
 requestXML (GetDomainWithCookie c _ cookie) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ cookieRequest "GET" "DOMAIN" (srsIpAddress c) cookie
         [("type", "all_info")]
-requestXML (LookupDomain c domainName) = XmlDocument UTF8 doctype nodes
+requestXML (LookupDomain c domain_name) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" (srsIpAddress c)
-        [("domain", domainName),
+        [("domain", domain_name),
          ("no_cache", "1")]
-requestXML (RenewDomain c domainName autoRenew affiliateID currentExp handleNow period) = XmlDocument UTF8 doctype nodes
+requestXML (RenewDomain c domain_name autoRenew affiliateID currentExp handle_now period) = XmlDocument UTF8 doctype nodes
   where
+    auto_renew = if autoRenew then "1" else "0"
+    handle = if handle_now then "process" else "save"
     nodes = wrapRequest $ genericRequest "RENEW" "DOMAIN" (srsIpAddress c)
-        [("domain", domainName),
+        [("domain", domain_name),
          ("auto_renew", auto_renew),
          ("affiliate_id", affiliateID),
          ("currentexpirationyear", show currentExp),
          ("handle", handle),
          ("period", show period)]
-    auto_renew = if autoRenew then "1" else "0"
-    handle = if handleNow then "process" else "save"
-requestXML (ModifyDomain c domainName affect_domains rdata tld) = XmlDocument UTF8 doctype nodes
+requestXML (ModifyDomain c domain_name affect_domains rdata tld) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest' "MODIFY" "DOMAIN" (srsIpAddress c) ++ (attributes $ [
-        itemNode "domain" domainName,
-        itemNode "affect_domains" $ boolVal affect_domains
-        ] ++ (itemMap rdata) ++ tldData)
+    nodes = wrapRequest $ genericRequest' "MODIFY" "DOMAIN" (srsIpAddress c) ++
+        attributes (
+            [ itemNode "domain" domain_name
+            , itemNode "affect_domains" $ boolVal affect_domains
+            ] ++ itemMap rdata ++ tldData)
     tldData = case tld of
         Nothing -> []
         Just tld' -> [itemParent "tld_data" [tag "dt_assoc" $
@@ -88,11 +79,13 @@ requestXML (ModifyDomain c domainName affect_domains rdata tld) = XmlDocument UT
 requestXML (UpdateDomain c domain) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $
-        genericRequest' "UPDATE_ALL_INFO" "DOMAIN" (srsIpAddress c) ++ (attributes $ domainToNodes domain)
+        genericRequest' "UPDATE_ALL_INFO" "DOMAIN" (srsIpAddress c) ++ attributes
+            (domainToNodes domain)
 requestXML (RegisterDomain c domain cc comments enc lock park priv handle period username password regtype tld) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $
-        genericRequest' "SW_REGISTER" "DOMAIN" (srsIpAddress c) ++ (attributes $ domainToNodes domain ++ tldData ++ [
+        genericRequest' "SW_REGISTER" "DOMAIN" (srsIpAddress c) ++ attributes
+            (domainToNodes domain ++ tldData ++ [
                 itemNode "change_contact" $ boolVal cc,
                 mayPair "comments" comments,
                 mayPair "encoding_type" enc,
@@ -110,15 +103,15 @@ requestXML (RegisterDomain c domain cc comments enc lock park priv handle period
         Just tld' -> [itemParent "tld_data" [tag "dt_assoc" $
             itemParentMap (\vmap -> [tag "dt_assoc" $ itemMap vmap]) tld'
             ]]
-requestXML (ChangeDomainPassword c domainName password) = XmlDocument UTF8 doctype nodes
+requestXML (ChangeDomainPassword c domain_name password) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "CHANGE" "PASSWORD" (srsIpAddress c)
-        [("domain", domainName),
+        [("domain", domain_name),
          ("reg_password", show password)]
-requestXML (SendDomainPassword c domainName sendTo subUser) = XmlDocument UTF8 doctype nodes
+requestXML (SendDomainPassword c domain_name sendTo subUser) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "CHANGE" "PASSWORD" (srsIpAddress c)
-        [("domain_name", domainName),
+        [("domain_name", domain_name),
          ("send_to", sendTo),
          ("sub_user", boolVal subUser)]
 requestXML (SetCookie c d u p) = XmlDocument UTF8 doctype nodes
@@ -127,7 +120,6 @@ requestXML (SetCookie c d u p) = XmlDocument UTF8 doctype nodes
         [("domain", d),
          ("reg_username", show u),
          ("reg_password", show p)]
-requestXML _ = error "Not implemented yet"
 
 -- | domain
 domainToNodes :: Domain -> [Node]
@@ -172,16 +164,18 @@ nsToNodes (k, ns) = [
 
 -- | preps some generic request parameters
 genericRequest :: String -> String -> String -> [(String, String)] -> [Node]
-genericRequest action object ip attr = genericRequest' action object ip ++ (makeAttr attr)
+genericRequest action object ip attr =
+    genericRequest' action object ip ++ makeAttr attr
 
 -- | preps some cookie-dependent request parameters
 cookieRequest :: String -> String -> String -> SRSCookie -> [(String, String)] -> [Node]
-cookieRequest action object ip cookie attr = cookieRequest' action object ip cookie ++ (makeAttr attr)
+cookieRequest action object ip cookie attr =
+    cookieRequest' action object ip cookie ++ makeAttr attr
 
 makeAttr :: [(String, String)] -> [Node]
 makeAttr attr = case attr of
     [] -> []
-    x  -> attributes $ Prelude.map attrMap attr
+    _  -> attributes $ Prelude.map attrMap attr
   where
     attrMap (k,v) = itemNode k v
 
