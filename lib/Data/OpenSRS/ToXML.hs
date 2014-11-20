@@ -108,12 +108,12 @@ requestXML (ChangeDomainPassword c domain_name password) = XmlDocument UTF8 doct
     nodes = wrapRequest $ genericRequest "CHANGE" "PASSWORD" (srsIpAddress c)
         [("domain", domain_name),
          ("reg_password", show password)]
-requestXML (SendDomainPassword c domain_name sendTo subUser) = XmlDocument UTF8 doctype nodes
+requestXML (SendDomainPassword c domain_name send_to sub_user) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "CHANGE" "PASSWORD" (srsIpAddress c)
+    nodes = wrapRequest $ genericRequest "SEND_PASSWORD" "DOMAIN" (srsIpAddress c)
         [("domain_name", domain_name),
-         ("send_to", sendTo),
-         ("sub_user", boolVal subUser)]
+         ("send_to", send_to),
+         ("sub_user", boolVal sub_user)]
 requestXML (SetCookie c d u p) = XmlDocument UTF8 doctype nodes
   where
     nodes = wrapRequest $ genericRequest "SET" "COOKIE" (srsIpAddress c)
