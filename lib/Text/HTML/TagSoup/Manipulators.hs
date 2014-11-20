@@ -3,45 +3,36 @@
 module Text.HTML.TagSoup.Manipulators where
 
 import Control.Lens
-import Data.Bifunctor
-import Data.ByteString (ByteString)
-import Data.ByteString.Char8 (pack, split, unpack)
-import qualified Data.ByteString.Lazy.Char8 as BSL8
-import qualified Data.CaseInsensitive as CI
-import Data.Char
-import Data.Hash.MD5
-import Data.List
-import Data.Map
-import Data.Maybe
-import Data.String (IsString)
 import Safe
 import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Entity
 import Text.HTML.TagSoup.Tree
-import Text.StringLike (StringLike, fromString, toString)
+import Text.StringLike (StringLike, toString)
 
 --------------------------------------------------------------------------------
 -- | Get inner text of the next tag fitting this matcher
 getText :: [Tag String] -> String -> String
-getText xml matcher = stringHead itemInnerValue $ sections (~== (matcher :: String)) xml
+getText xml matcher =
+    stringHead itemInnerValue $ sections (~== matcher) xml
 
 getText' :: (Eq a, StringLike a, Show a) => [Tag a] -> String -> String
-getText' xml matcher = stringHead itemInnerValue' $ sections (~== (matcher :: String)) xml
+getText' xml matcher =
+    stringHead itemInnerValue' $ sections (~== matcher) xml
 
 maybeGetText :: [Tag String] -> String -> Maybe String
-maybeGetText xml matcher = fmap itemInnerValue $ headMay $ sections (~== (matcher :: String)) xml
+maybeGetText xml matcher =
+    fmap itemInnerValue $ headMay $ sections (~== matcher) xml
 
 -- | Get a string out of something
 stringHead :: (a -> String) -> [a] -> String
 stringHead fn = maybe "" fn . headMay
 
 itemInnerValue :: [Tag String] -> String
-itemInnerValue x = case (x !! 1) of
+itemInnerValue x = case x !! 1 of
     t@(TagText _) -> fromTagText t
     _             -> ""
 
 itemInnerValue' :: (Eq a, StringLike a, Show a) => [Tag a] -> String
-itemInnerValue' x = case (x !! 1) of
+itemInnerValue' x = case x !! 1 of
     t@(TagText _) -> tagIdent t
     _             -> ""
 
@@ -59,7 +50,7 @@ topMatching' matcher l@(TagLeaf _) = matchingKids' matcher l
 topMatching' matcher b@(TagBranch _ _ kids) =
     case matchingKids' matcher b of
         [] -> concatMap (topMatching' matcher) kids
-        x  -> [b]
+        _  -> [b]
 
 matchingKids' :: (Eq a, StringLike a, Show a) => String -> TagTree a -> [TagTree a]
 matchingKids' matcher t = [ t | isMatch t matcher ]

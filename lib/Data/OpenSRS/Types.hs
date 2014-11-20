@@ -48,7 +48,7 @@ import Data.Time
 import Network.Wreq.Types (Postable)
 
 --------------------------------------------------------------------------------
--- | OpenSRS Request
+-- | OpenSRS API requests.
 data SRSRequest = AllDomains {
     requestConfig :: SRSConfig
 } | ListDomains {

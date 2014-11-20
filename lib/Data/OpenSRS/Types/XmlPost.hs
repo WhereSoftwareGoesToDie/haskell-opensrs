@@ -2,14 +2,11 @@
 
 module Data.OpenSRS.Types.XmlPost where
 
-import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (pack)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.CaseInsensitive as CI
 
 import qualified Network.HTTP.Client as HTTP
-import Network.HTTP.Types (HeaderName)
-import Network.Wreq
 import Network.Wreq.Types
 
 --------------------------------------------------------------------------------

@@ -15,7 +15,6 @@ module Data.OpenSRS.Types.Common (
     unPassword
 ) where
 
-import Data.List
 import Data.String.Utils
 import Data.Time
 
