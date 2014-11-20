@@ -172,27 +172,37 @@ cookieRequest :: String -> String -> String -> SRSCookie -> [(String, String)] -
 cookieRequest action object ip cookie attr =
     cookieRequest' action object ip cookie ++ makeAttr attr
 
+-- | Convert a list of key/value pairs into an tag soup list representing the
+-- map.
+--
+-- @makeAttr [("domain", "example.com")]@ results in XML like the following:
+--
+-- <item key="attributes"><dt_assoc>
+--     <item key="domain">example.com</item>
+-- </dt_assoc></item>
+--
 makeAttr :: [(String, String)] -> [Node]
-makeAttr attr = case attr of
-    [] -> []
-    _  -> attributes $ Prelude.map attrMap attr
+makeAttr [] = []
+makeAttr attr = attributes $ Prelude.map attrMap attr
   where
     attrMap (k,v) = itemNode k v
 
 genericRequest' :: String -> String -> String -> [Node]
-genericRequest' action object ip = [
-    itemNode "protocol" "XCP",
-    itemNode "action" (Prelude.map toUpper action),
-    itemNode "object" (Prelude.map toUpper object),
-    itemNode "registrant_ip" ip ]
+genericRequest' action object ip =
+    [ itemNode "protocol" "XCP"
+    , itemNode "action" (Prelude.map toUpper action)
+    , itemNode "object" (Prelude.map toUpper object)
+    , itemNode "registrant_ip" ip
+    ]
 
 cookieRequest' :: String -> String -> String -> SRSCookie -> [Node]
-cookieRequest' action object ip cookie = [
-    itemNode "protocol" "XCP",
-    itemNode "action" (Prelude.map toUpper action),
-    itemNode "object" (Prelude.map toUpper object),
-    itemNode "registrant_ip" ip,
-    itemNode "cookie" cookie ]
+cookieRequest' action object ip cookie =
+    [ itemNode "protocol" "XCP"
+    , itemNode "action" (Prelude.map toUpper action)
+    , itemNode "object" (Prelude.map toUpper object)
+    , itemNode "registrant_ip" ip
+    , itemNode "cookie" cookie
+    ]
 
 -- | Writes the standard doctype
 doctype :: Maybe DocType
@@ -232,7 +242,8 @@ boolVal b = if b then "1" else "0"
 
 -- | Wraps the entire request
 wrapRequest :: [Node] -> [Node]
-wrapRequest nodes = [tag "OPS_envelope" [
-    tag "header" [ tag "version" [TextNode $ Text.pack "0.9"] ],
-    tag "body" [ tag "data_block" [ tag "dt_assoc" nodes ]]
-    ]]
+wrapRequest nodes = [tag "OPS_envelope"
+        [ tag "header" [ tag "version" [TextNode $ Text.pack "0.9"] ]
+        , tag "body" [ tag "data_block" [ tag "dt_assoc" nodes ]]
+        ]
+    ]
