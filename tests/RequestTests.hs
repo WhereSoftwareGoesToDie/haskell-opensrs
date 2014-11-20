@@ -92,7 +92,7 @@ suite = do
                 Right (GenericSuccess _) -> pass
                 Left e                   -> error $ e
                 _                        -> error "This should never happen."
-        
+
         it "cannot use an invalid password" $ do
             let pwd = makePassword invalidPassword
             pwd `shouldBe` Nothing

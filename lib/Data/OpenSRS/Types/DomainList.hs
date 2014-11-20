@@ -13,8 +13,8 @@ data DomainList = DomainList {
 } deriving (Eq, Show)
 
 data DomainListDomain = DomainListDomain {
-    dldName          :: DomainName,
-    dldExpireDate    :: UTCTime,
-    dldAutoRenew     :: Bool,
-    dldLetExpire     :: Bool
+    dldName       :: DomainName,
+    dldExpireDate :: UTCTime,
+    dldAutoRenew  :: Bool,
+    dldLetExpire  :: Bool
 } deriving (Eq, Show)

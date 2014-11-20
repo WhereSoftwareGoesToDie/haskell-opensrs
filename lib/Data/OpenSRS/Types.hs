@@ -50,47 +50,47 @@ import Network.Wreq.Types (Postable)
 --------------------------------------------------------------------------------
 -- | OpenSRS Request
 data SRSRequest = AllDomains {
-    requestConfig        :: SRSConfig
+    requestConfig :: SRSConfig
 } | ListDomains {
-    requestConfig        :: SRSConfig,
-    requestPage          :: Int,
-    requestLimit         :: Int
+    requestConfig :: SRSConfig,
+    requestPage   :: Int,
+    requestLimit  :: Int
 } | ListDomainsByExpiry {
-    requestConfig        :: SRSConfig,
-    requestStartDate     :: UTCTime,
-    requestEndDate       :: UTCTime,
-    requestPage          :: Int,
-    requestLimit         :: Int
+    requestConfig    :: SRSConfig,
+    requestStartDate :: UTCTime,
+    requestEndDate   :: UTCTime,
+    requestPage      :: Int,
+    requestLimit     :: Int
 } | GetDomain {
-    requestConfig        :: SRSConfig,
-    requestDomainName    :: DomainName
+    requestConfig     :: SRSConfig,
+    requestDomainName :: DomainName
 } | GetDomainWithCookie {
-    requestConfig        :: SRSConfig,
-    requestDomainName    :: DomainName,
-    requestCookie        :: SRSCookie
+    requestConfig     :: SRSConfig,
+    requestDomainName :: DomainName,
+    requestCookie     :: SRSCookie
 } | GetDomainTldData {
-    requestConfig        :: SRSConfig,
-    requestDomainName    :: DomainName
+    requestConfig     :: SRSConfig,
+    requestDomainName :: DomainName
 } | LookupDomain {
-    requestConfig        :: SRSConfig,
-    requestDomainName    :: DomainName
+    requestConfig     :: SRSConfig,
+    requestDomainName :: DomainName
 } | RenewDomain {
-    requestConfig        :: SRSConfig,
-    requestDomainName    :: DomainName,
-    requestAutoRenew     :: Bool,
-    requestAffiliateID   :: String,
-    requestExpiryYear    :: Int,
-    requestHandleNow     :: Bool,
-    requestPeriod        :: Int
+    requestConfig      :: SRSConfig,
+    requestDomainName  :: DomainName,
+    requestAutoRenew   :: Bool,
+    requestAffiliateID :: String,
+    requestExpiryYear  :: Int,
+    requestHandleNow   :: Bool,
+    requestPeriod      :: Int
 } | ModifyDomain {
-    requestConfig        :: SRSConfig,
-    requestDomainName    :: DomainName,
-    requestAffectLinked  :: Bool,
-    requestData          :: Map String String,
-    requestTldData       :: Maybe TLDData
+    requestConfig       :: SRSConfig,
+    requestDomainName   :: DomainName,
+    requestAffectLinked :: Bool,
+    requestData         :: Map String String,
+    requestTldData      :: Maybe TLDData
 } | UpdateDomain {
-    requestConfig        :: SRSConfig,
-    requestDomain        :: Domain
+    requestConfig :: SRSConfig,
+    requestDomain :: Domain
 } | RegisterDomain {
     requestConfig        :: SRSConfig,
     requestDomain        :: Domain,
@@ -107,19 +107,19 @@ data SRSRequest = AllDomains {
     requestRegType       :: RegistrationType,
     requestTldData       :: Maybe TLDData
 } | ChangeDomainPassword {
-    requestConfig        :: SRSConfig,
-    requestDomainName    :: DomainName,
-    requestPassword      :: Password
+    requestConfig     :: SRSConfig,
+    requestDomainName :: DomainName,
+    requestPassword   :: Password
 } | SendDomainPassword {
-    requestConfig        :: SRSConfig,
-    requestDomainName    :: DomainName,
-    requestSendTo        :: String,
-    requestToSubuser     :: Bool
+    requestConfig     :: SRSConfig,
+    requestDomainName :: DomainName,
+    requestSendTo     :: String,
+    requestToSubuser  :: Bool
 } | SetCookie {
-    requestConfig        :: SRSConfig,
-    requestDomainName    :: DomainName,
-    requestUsername      :: SRSUsername,
-    requestPassword      :: Password
+    requestConfig     :: SRSConfig,
+    requestDomainName :: DomainName,
+    requestUsername   :: SRSUsername,
+    requestPassword   :: Password
 } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
