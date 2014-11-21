@@ -4,17 +4,33 @@ module Main where
 
 import Blaze.ByteString.Builder
 import qualified Data.ByteString.Lazy.Char8 as BSL8
+import Data.Char
 import Data.Either.Utils
 import Data.Map
 import Data.Maybe
 import Data.OpenSRS
 import Data.OpenSRS.Types
 import Data.Time
+import Data.UUID
+import Data.UUID.V5
+import System.Locale (defaultTimeLocale)
 import Test.Hspec
 import Test.Hspec.Expectations
 import Text.XmlHtml
 
 import TestConfig
+
+makeDomainName :: String
+makeDomainName = toString (generateNamed namespaceURL seed) ++ ".com"
+  where
+    seed = Prelude.map (fromIntegral . ord) "buttfart"
+
+makeDomain :: IO Domain
+makeDomain = do
+    let dname = makeDomainName
+    t <- getCurrentTime
+    let t' = addUTCTime ((86400 * 365) :: NominalDiffTime) t
+    return $ Domain dname True testContacts (Just t) True (Just t) (Just "5534") True (Just t') testNameservers
 
 suite :: Spec
 suite = do
@@ -61,23 +77,68 @@ suite = do
             (a, b, c, d, e, f, g, h, i, j, k, l, m) <- testRegistrationDomain
             let req = RegisterDomain testConfig a b c d e f g h i j k l m
             res <- doRequest req
-            putStrLn $ show res
+            -- putStrLn $ show res
             case res of
                 Right (DomainRegistrationResult d) -> do
-                    putStrLn $ show d
+                    -- putStrLn $ show d
                     pass
                 Left e                      -> error $ e
                 _                           -> error "This should never happen."
 
     describe "Domain Registration" $ do
+        it "renews a randomly created domain" $ do
+            domain <- makeDomain
+            let changeContact = False
+            let comments      = Nothing
+            let encoding      = Nothing
+            let lock          = False
+            let park          = False
+            let whois         = False
+            let handleNow     = True
+            let regPeriod     = 1
+            let username      = fromJust $ makeUsername "webmaster"
+            let password      = fromJust $ makePassword "testPassword123"
+            let regType       = NewRegistration
+            let tldData       = Nothing
+
+            -- Stage 1: Register domain
+            let req = RegisterDomain testConfig domain changeContact comments encoding lock park whois handleNow regPeriod username password regType tldData
+            res <- doRequest req
+            putStrLn $ show res
+            case res of
+                Right (DomainRegistrationResult _) -> do
+                    -- Stage 2: Get domain
+                    let req = GetDomain testConfig (domainName domain)
+                    res <- doRequest req
+                    putStrLn $ show res
+                    case res of
+                        Right (DomainResult d2) -> do
+                            -- Stage 3: Renew domain
+                            let expyear = read $ formatTime defaultTimeLocale "%Y" $ fromJust $ domainExpireDate d2
+                            let req = RenewDomain testConfig (domainName d2) (domainAutoRenew d2) (fromJust $ domainAffiliateID d2) expyear True 1
+                            res <- doRequest req
+                            putStrLn $ show res
+                            case res of
+                                Right (DomainRenewalResult d) -> do
+                                    putStrLn $ show d
+                                    pass
+                                Left e                      -> error $ e
+                                _                           -> error "This should never happen."
+
+                        Left e                      -> error $ e
+                        _                           -> error "This should never happen."
+
+                Left e                      -> error $ e
+                _                           -> error "This should never happen."
+
         it "renews a domain" $ do
             let (dname, affid, expyear) = renewTest
             let req = RenewDomain testConfig dname False affid expyear True 1
             res <- doRequest req
-            putStrLn $ show res
+            -- putStrLn $ show res
             case res of
                 Right (DomainRenewalResult d) -> do
-                    putStrLn $ show d
+                    -- putStrLn $ show d
                     pass
                 Left e                      -> error $ e
                 _                           -> error "This should never happen."
@@ -133,6 +194,7 @@ suite = do
 
     describe "Domain Updates" $ do
         it "can set whois privacy" $ do
+            -- @TODO: toggle on and off
             let req = ModifyDomain testConfig modifyTest False (fromList [("data", "whois_privacy_state"), ("state", "enable")]) Nothing
             res <- doRequest req
             res `shouldBe` (Right $ GenericSuccess "Whois Privacy successfully enabled")

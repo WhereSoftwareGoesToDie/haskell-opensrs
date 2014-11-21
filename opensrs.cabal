@@ -93,5 +93,6 @@ test-suite request-tests
                      , tagsoup
                      , text
                      , time
+                     , uuid
                      , wreq
                      , xmlhtml

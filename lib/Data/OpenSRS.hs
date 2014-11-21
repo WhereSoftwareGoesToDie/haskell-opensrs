@@ -108,7 +108,7 @@ doRequest' :: (String -> SRSResult) -> SRSRequest -> IO (Either String SRSResult
 doRequest' parser r = do
     res <- postRequest r
     let unpackedb = BSL8.unpack (res ^. responseBody)
-    putStrLn unpackedb
+    -- putStrLn unpackedb
     let resp = parseResponse unpackedb
     return $ if srsSuccess resp
         then Right $ parser unpackedb

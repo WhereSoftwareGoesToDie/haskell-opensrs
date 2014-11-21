@@ -44,17 +44,21 @@ testRegistrationDomain = do
     domain = do
         t <- getCurrentTime
         let t' = addUTCTime ((86400 * 365) :: NominalDiffTime) t
-        return $ Domain "testingdomainregistration124foo.com" True contacts (Just t) Nothing (Just t) (Just "5534") (Just t') True (Just t') nameservers
-    contacts = fromList [
-        ("owner", testc),
-        ("admin", testc),
-        ("billing", testc),
-        ("tech", testc)
-        ]
+        return $ Domain "testingdomainregistration124foo.com" True testContacts (Just t) Nothing (Just t) (Just "5534") (Just t') True (Just t') testNameservers
+    un = fromJust $ makeUsername "webmaster"
+    pwd = fromJust $ makePassword "aTestingPassWord123"
+
+-- | Testing contacts
+testContacts :: Map String Contact
+testContacts = fromList [("owner", testc),
+                         ("admin", testc),
+                         ("billing", testc),
+                         ("tech", testc)]
+  where
     testc = Contact (Just "Jane")
                     (Just "Doe")
                     (Just "Frobozz Pty Ltd")
-                    (Just "jane.doe@frobozz.com.au")
+                    (Just "geoffrey.roberts@anchor.com.au")
                     (Just "+61.299999999")
                     Nothing
                     (Just "Frobozz Pty Ltd")
@@ -64,11 +68,12 @@ testRegistrationDomain = do
                     (Just "NSW")
                     (Just "2000")
                     (Just "AU")
-    nameservers = [
-        Nameserver (Just "ns1.example.com") (Just "0") (Just "127.0.0.1"),
-        Nameserver (Just "ns2.example.com") (Just "0") (Just "127.0.0.2") ]
-    un = fromJust $ makeUsername "webmaster"
-    pwd = fromJust $ makePassword "aTestingPassWord123"
+
+-- | Testing nameservers
+testNameservers :: [Nameserver]
+testNameservers = [
+    Nameserver (Just "ns1.example.com") (Just "0") (Just "127.0.0.1"),
+    Nameserver (Just "ns2.example.com") (Just "0") (Just "127.0.0.2") ]
 
 -- | Password test domain
 passwordTestDomain :: String
