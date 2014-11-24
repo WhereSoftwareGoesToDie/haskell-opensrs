@@ -55,14 +55,12 @@ requestXML (LookupDomain c domain_name) = XmlDocument UTF8 doctype nodes
          ("no_cache", "1")]
 requestXML (RenewDomain c domain_name autoRenew affiliateID currentExp handle_now period) = XmlDocument UTF8 doctype nodes
   where
-    auto_renew = if autoRenew then "1" else "0"
-    handle = if handle_now then "process" else "save"
     nodes = wrapRequest $ genericRequest "RENEW" "DOMAIN" (srsIpAddress c)
         [("domain", domain_name),
-         ("auto_renew", auto_renew),
+         ("auto_renew", boolVal autoRenew),
          ("affiliate_id", affiliateID),
          ("currentexpirationyear", show currentExp),
-         ("handle", handle),
+         ("handle", boolVal' "process" "save" handle_now),
          ("period", show period)]
 requestXML (ModifyDomain c domain_name affect_domains rdata tld) = XmlDocument UTF8 doctype nodes
   where
@@ -92,7 +90,7 @@ requestXML (RegisterDomain c domain cc comments enc lock park priv handle period
                 itemNode "f_lock_domain" $ boolVal lock,
                 itemNode "f_parkp" $ boolVal park,
                 itemNode "f_whois_privacy" $ boolVal priv,
-                itemNode "handle" $ boolVal handle,
+                itemNode "handle" $ boolVal' "process" "save" handle,
                 itemNode "period" $ show period,
                 itemNode "reg_username" $ show username,
                 itemNode "reg_password" $ show password,
@@ -228,7 +226,11 @@ mayPair k v = itemNode k $ fromMaybe "" v
 
 -- | Makes a quick and dirty boolean value
 boolVal :: Bool -> String
-boolVal b = if b then "1" else "0"
+boolVal = boolVal' "1" "0"
+
+-- | Makes a boolean value based on true/false strings
+boolVal' :: String -> String -> Bool -> String
+boolVal' t f b = if b then t else f
 
 -- | Wraps the entire request
 wrapRequest :: [Node] -> [Node]
