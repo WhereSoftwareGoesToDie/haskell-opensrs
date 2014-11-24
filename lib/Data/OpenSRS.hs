@@ -234,7 +234,7 @@ parseDomainRenewal dn s =
                             (gt "<item key='order_id'>")
                             (Just $ gt "<item key='queue_request_id'>")
                             (Just $ gt "<item key='id'>")
-                            (gt "<item key='registration_expiration_date'>")
+                            (gt "<item key='registration expiration date'>")
         "480" -> NotRenewed dn 480 "Renewals not enabled for this TLD"
         "555" -> NotRenewed dn 555 "Domain already renewed"
         "541" -> NotRenewed dn 541 "Provided expiration year does not match registry value"
