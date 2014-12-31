@@ -71,7 +71,7 @@ test-suite xml-tests
                      , wreq
                      , xmlhtml
 
-test-suite request-tests
+executable request-tests
   type:                exitcode-stdio-1.0
   hs-source-dirs:      tests, lib
   main-is:             RequestTests.hs

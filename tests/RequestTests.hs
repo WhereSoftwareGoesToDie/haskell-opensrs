@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- | RequestTests runs as a standalone executable so that developers can change
+-- TestConfig to whatever settings they want.
+
 module Main where
 
 import Blaze.ByteString.Builder
@@ -23,7 +26,7 @@ import TestConfig
 makeDomainName :: String
 makeDomainName = toString (generateNamed namespaceURL seed) ++ ".com"
   where
-    seed = Prelude.map (fromIntegral . ord) "buttfart"
+    seed = Prelude.map (fromIntegral . ord) "thinger"
 
 makeDomain :: IO Domain
 makeDomain = do
