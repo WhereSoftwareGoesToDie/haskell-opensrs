@@ -5,6 +5,8 @@ name registration API.
 
 © 2014 [Anchor Systems][] Pty Ltd and Others
 
+[![Build Status](https://travis-ci.org/anchor/haskell-opensrs.svg)](https://travis-ci.org/anchor/haskell-opensrs)
+
 ## Usage
 
 ```haskell

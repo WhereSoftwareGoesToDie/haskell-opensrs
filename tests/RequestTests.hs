@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- | RequestTests runs as a standalone executable so that developers can change
+-- TestConfig to whatever settings they want.
+
 module Main where
 
 import Blaze.ByteString.Builder
