@@ -44,12 +44,14 @@ module Data.OpenSRS (
 ) where
 
 import Control.Lens
+import Control.Monad
 import Data.ByteString.Char8 (pack)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import Data.Hash.MD5
 import Data.List
 import Data.Map
 import Data.Maybe
+import Debug.Trace
 
 import Network.Wreq
 import Network.Wreq.Types
@@ -67,6 +69,7 @@ import Text.XmlHtml
 import Data.OpenSRS.Types
 
 import Text.HTML.TagSoup.Manipulators
+import Text.HTML.TagSoup.Pretty
 
 import Data.OpenSRS.ToXML
 
@@ -108,7 +111,7 @@ doRequest' :: (String -> SRSResult) -> SRSRequest -> IO (Either String SRSResult
 doRequest' parser r = do
     res <- postRequest r
     let unpackedb = BSL8.unpack (res ^. responseBody)
-    -- putStrLn unpackedb
+    void $ tryDebug (requestConfig r) unpackedb
     let resp = parseResponse unpackedb
     return $ if srsSuccess resp
         then Right $ parser unpackedb
@@ -120,7 +123,8 @@ responseError resp = show (srsResponseCode resp) ++ ": " ++ srsResponseText resp
 
 -- | Posts request to OpenSRS
 postRequest :: SRSRequest -> IO (Response BSL8.ByteString)
-postRequest req =
+postRequest req = do
+    void $ tryDebug (requestConfig req) (BSL8.unpack . toLazyByteString . render . requestXML $ req)
     postWith opts (srsEndpoint $ requestConfig req) postBody
   where
     opts = defaults
@@ -136,6 +140,12 @@ md5Wrap :: String -> String -> String
 md5Wrap pk content = md5pack (md5pack (content ++ pk) ++ pk)
   where
     md5pack = md5s . Str
+
+-- | Debug an XML string.
+tryDebug :: SRSConfig -> String -> IO ()
+tryDebug cfg s = if srsDebug cfg
+    then traceIO $ prettyXML "  " s
+    else return ()
 
 --------------------------------------------------------------------------------
 -- | Parse SRSResponse so we know if it's good or not

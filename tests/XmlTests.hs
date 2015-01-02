@@ -14,7 +14,7 @@ import Text.XmlHtml
 
 -- | API configuration to use in these (non-integration) tests.
 testConfig :: SRSConfig
-testConfig = SRSConfig "https://horizon.opensrs.net:55443" "janedoe" "0123456789abcdef" "127.0.0.1"
+testConfig = SRSConfig "https://horizon.opensrs.net:55443" "janedoe" "0123456789abcdef" "127.0.0.1" True
 
 testDomain1 :: IO Domain
 testDomain1 = do

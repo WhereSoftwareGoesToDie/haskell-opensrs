@@ -93,6 +93,8 @@ test-suite request-tests
                      , tagsoup
                      , text
                      , time
+                     , transformers
+                     , tuple
                      , uuid
                      , wreq
                      , xmlhtml
