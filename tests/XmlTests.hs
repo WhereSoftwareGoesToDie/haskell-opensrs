@@ -49,7 +49,7 @@ reqXML :: SRSRequest -> String
 reqXML = BSL8.unpack . toLazyByteString . render . requestXML
 
 suite :: Spec
-suite = do
+suite =
     describe "Domains" $ do
         it "Can be marshalled into a registration request" $ do
             d <- testDomain1

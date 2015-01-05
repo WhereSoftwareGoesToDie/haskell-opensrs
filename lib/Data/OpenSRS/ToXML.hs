@@ -15,23 +15,23 @@ import Text.XmlHtml
 ----------------------------------------
 -- | Actually generates request XML
 requestXML :: SRSRequest -> Document
-requestXML (AllDomains c) = XmlDocument UTF8 doctype nodes
+requestXML AllDomains{..} = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
+    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress requestConfig)
         [("type", "list")]
-requestXML (ListDomains c p l) = XmlDocument UTF8 doctype nodes
+requestXML ListDomains{..} = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
+    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress requestConfig)
         [("type", "list"),
-         ("page", show p),
-         ("limit", show l)]
-requestXML (ListDomainsByExpiry c ds de p l) = XmlDocument UTF8 doctype nodes
+         ("page", show requestPage),
+         ("limit", show requestLimit)]
+requestXML ListDomainsByExpiry{..} = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "GET_DOMAINS_BY_EXPIREDATE" "DOMAIN" (srsIpAddress c)
-        [("exp_from", dateStr ds),
-         ("exp_to", dateStr de),
-         ("page", show p),
-         ("limit", show l)]
+    nodes = wrapRequest $ genericRequest "GET_DOMAINS_BY_EXPIREDATE" "DOMAIN" (srsIpAddress requestConfig)
+        [("exp_from", dateStr requestStartDate),
+         ("exp_to", dateStr requestEndDate),
+         ("page", show requestPage),
+         ("limit", show requestLimit)]
     dateStr = formatTime defaultTimeLocale "%Y-%m-%d"
 requestXML GetDomain{..} = XmlDocument UTF8 doctype nodes
   where
@@ -39,20 +39,20 @@ requestXML GetDomain{..} = XmlDocument UTF8 doctype nodes
         [("domain", requestDomainName),
          ("type", "all_info"),
          ("limit", "10")]
-requestXML (GetDomainTldData c domain_name) = XmlDocument UTF8 doctype nodes
+requestXML GetDomainTldData{..} = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
-        [("domain", domain_name),
+    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress requestConfig)
+        [("domain", requestDomainName),
          ("type", "tld_data"),
          ("limit", "10")]
-requestXML (GetDomainWithCookie c _ cookie) = XmlDocument UTF8 doctype nodes
+requestXML GetDomainWithCookie{..} = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ cookieRequest "GET" "DOMAIN" (srsIpAddress c) cookie
+    nodes = wrapRequest $ cookieRequest "GET" "DOMAIN" (srsIpAddress requestConfig) requestCookie
         [("type", "all_info")]
-requestXML (LookupDomain c domain_name) = XmlDocument UTF8 doctype nodes
+requestXML LookupDomain{..} = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" (srsIpAddress c)
-        [("domain", domain_name),
+    nodes = wrapRequest $ genericRequest "LOOKUP" "DOMAIN" (srsIpAddress requestConfig)
+        [("domain", requestDomainName),
          ("no_cache", "1")]
 requestXML (RenewDomain c domain_name autoRenew affiliateID currentExp handle_now period) = XmlDocument UTF8 doctype nodes
   where

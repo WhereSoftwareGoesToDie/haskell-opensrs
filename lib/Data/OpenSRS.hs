@@ -143,31 +143,31 @@ md5Wrap pk content = md5pack (md5pack (content ++ pk) ++ pk)
 
 -- | Debug an XML string.
 tryDebug :: SRSConfig -> String -> IO ()
-tryDebug cfg s = if srsDebug cfg
-    then traceIO $ prettyXML "  " s
-    else return ()
+tryDebug cfg s = when (srsDebug cfg) $ traceIO $ prettyXML "  " s
+
+--------------------------------------------------------------------------------
+-- | Internal XML helper: Turns XML string into a list of XML TagTrees
+toXmlTree :: String -> [TagTree String]
+toXmlTree = tagTree . parseTags
 
 --------------------------------------------------------------------------------
 -- | Parse SRSResponse so we know if it's good or not
 parseResponse :: String -> SRSResponse
-parseResponse s = SRSResponse
-    (gt "<item key='is_success'>" == "1")
-    (gt "<item key='response_text'>")
-    (read $ gt "<item key='response_code'>")
-  where
+parseResponse s = let
     xml = parseTags s
-    gt = getText xml
+    in SRSResponse (getText xml "<item key='is_success'>" == "1")
+                   (getText xml "<item key='response_text'>")
+                   (read $ getText xml "<item key='response_code'>")
 
 --------------------------------------------------------------------------------
 -- | Parse domain list
 parseDomainList :: String -> DomainList
-parseDomainList s = DomainList (read $ gt "<item key='total'>")
+parseDomainList s = DomainList (read $ getText xml "<item key='total'>")
                                (Prelude.map makeDomain domainItems)
-                               (gt "<item key='remainder'>" == "1")
+                               (getText xml "<item key='remainder'>" == "1")
   where
     xml = parseTags s
-    gt = getText xml
-    xmlt = tagTree xml
+    xmlt = toXmlTree s
     -- domains
     domainItems = kidsWith "item" $ topMatching "<item key='exp_domains'>" $ topMatching "<item key='attributes'>" xmlt
     makeDomain domains =
@@ -183,19 +183,18 @@ parseDomainList s = DomainList (read $ gt "<item key='total'>")
 -- | Extract domain data
 parseDomain :: DomainName -> String -> Domain
 parseDomain dn s = Domain dn
-    (gt "<item key='auto_renew'>" == "1")
+    (getText xml "<item key='auto_renew'>" == "1")
     (fromList . Prelude.map makeContact $ contactSets)
-    (toUTC' $ gt "<item key='registry_updatedate'>")
-    (gt "<item key='sponsoring_rsp'>" == "1")
-    (toUTC' $ gt "<item key='registry_createdate'>")
-    (Just $ gt "<item key='affiliate_id'>")
-    (gt "<item key='let_expire'>" == "1")
-    (toUTC' $ gt "<item key='registry_expiredate'>")
+    (toUTC' $ getText xml "<item key='registry_updatedate'>")
+    (getText xml "<item key='sponsoring_rsp'>" == "1")
+    (toUTC' $ getText xml "<item key='registry_createdate'>")
+    (Just $ getText xml "<item key='affiliate_id'>")
+    (getText xml "<item key='let_expire'>" == "1")
+    (toUTC' $ getText xml "<item key='registry_expiredate'>")
     (Prelude.map makeNameserver nameserverSets)
   where
     xml = parseTags s
-    gt  = getText xml
-    xmlt = tagTree xml
+    xmlt = toXmlTree s
     -- contacts
     contactSets = kidsWith "item" $ topMatching "<item key='contact_set'>" $ topMatching "<item key='attributes'>" xmlt
     makeContact contacts =
@@ -239,23 +238,22 @@ parseDomainAvailability dn s =
 -- | Extract domain renewal status
 parseDomainRenewal :: DomainName -> String -> DomainRenewal
 parseDomainRenewal dn s =
-    case gt "<item key='response_code'>" of
-        "200" -> Renewed dn (gt "<item key='admin_email'>")
-                            (gt "<item key='auto_renew'>" == "1")
-                            (gt "<item key='order_id'>")
-                            (Just $ gt "<item key='queue_request_id'>")
-                            (Just $ gt "<item key='id'>")
-                            (gt "<item key='registration expiration date'>")
+    case getText xml "<item key='response_code'>" of
+        "200" -> Renewed dn (getText xml "<item key='admin_email'>")
+                            (getText xml "<item key='auto_renew'>" == "1")
+                            (getText xml "<item key='order_id'>")
+                            (Just $ getText xml "<item key='queue_request_id'>")
+                            (Just $ getText xml "<item key='id'>")
+                            (getText xml "<item key='registration expiration date'>")
         "480" -> NotRenewed dn 480 "Renewals not enabled for this TLD"
         "555" -> NotRenewed dn 555 "Domain already renewed"
         "541" -> NotRenewed dn 541 "Provided expiration year does not match registry value"
-        "400" -> case gt "<item key='response_text'>" of
+        "400" -> case getText xml "<item key='response_text'>" of
             "Fatal Server Error" -> NotRenewed dn 400 "Fatal error at registry"
             _                    -> NotRenewed dn 400 "Renewal request already submitted, cannot renew until request completed"
-        x     -> NotRenewed dn (read x) (gt "<item key='response_text'>")
+        x     -> NotRenewed dn (read x) (getText xml "<item key='response_text'>")
   where
     xml = parseTags s
-    gt  = getText xml
 
 --------------------------------------------------------------------------------
 -- | Extract domain registration status

@@ -107,10 +107,10 @@ data SRSRequest = AllDomains {
     requestRegType       :: RegistrationType,
     requestTldData       :: Maybe TLDData
 } | ChangeDomainOwnership {
-    requestConfig        :: SRSConfig,
-    requestDomainName    :: DomainName,
-    requestUsername      :: SRSUsername,
-    requestPassword      :: Password
+    requestConfig     :: SRSConfig,
+    requestDomainName :: DomainName,
+    requestUsername   :: SRSUsername,
+    requestPassword   :: Password
 } | SendDomainPassword {
     requestConfig     :: SRSConfig,
     requestDomainName :: DomainName,

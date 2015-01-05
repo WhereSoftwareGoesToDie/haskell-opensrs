@@ -63,7 +63,7 @@ makeDomain dname = do
 
 suite :: Spec
 suite = do
-    describe "Domain List" $ do
+    describe "Domain List" $
         it "can list domains with expiry in a given period" $ let
             run cfg = do
                 t <- getCurrentTime
@@ -71,9 +71,9 @@ suite = do
                 let ed = addUTCTime ((86400 * 365 * 20) :: NominalDiffTime) t
                 res <- doRequest $ ListDomainsByExpiry cfg sd ed 0 5000
                 case res of
-                    Right (DomainListResult (DomainList count items _)) -> do
-                        (length items) `shouldBe` count
-                    Left e                      -> error $ e
+                    Right (DomainListResult (DomainList count items _)) ->
+                        length items `shouldBe` count
+                    Left e                      -> error e
                     _                           -> error "This should never happen."
             in withSRSConfig run
 
@@ -94,8 +94,8 @@ suite = do
             run cfg d = do
                 res <- doRequest $ GetDomain cfg d
                 case res of
-                    Right (DomainResult dr) -> do
-                        (domainName dr) `shouldBe` d
+                    Right (DomainResult dr) ->
+                        domainName dr `shouldBe` d
                     Left e                      -> error e
                     _                           -> error "This should never happen."
             in withSRSConfigArgs (lookupEnv "SRSTEST_DOMAINGET_OURS") run
@@ -104,9 +104,9 @@ suite = do
             (lookupEnv "SRSTEST_DOMAINGET_NOTOURS")
             (\cfg d -> do
                 res <- doRequest $ GetDomain cfg d
-                (fromLeft res) `shouldContain` "415: Authentication Error.")
+                fromLeft res `shouldContain` "415: Authentication Error.")
 
-    describe "Domain Registration" $ do
+    describe "Domain Registration" $
         it "registers a domain" $ let
             run cfg d = do
                 domain <- makeDomain d
@@ -155,7 +155,7 @@ suite = do
                                 res <- doRequest req
                                 case res of
                                     Right (DomainRenewalResult drr) -> do
-                                        putStrLn $ show drr
+                                        print drr
                                         pass
                                     Left e                      -> error e
                                     _                           -> error "This should never happen."
@@ -172,15 +172,15 @@ suite = do
                 res <- doRequest $ RenewDomain cfg d False a y True 1
                 case res of
                     Right (DomainRenewalResult dr) -> do
-                        putStrLn $ show dr
+                        print dr
                         pass
-                    Left e                         -> error $ e
+                    Left e                         -> error e
                     _                              -> error "This should never happen."
             getSettings = do
                 d <- lookupEnv "SRSTEST_DOMAINRENEW_NAME"
                 a <- lookupEnv "SRSTEST_DOMAINRENEW_AFFID"
                 y <- lookupEnv "SRSTEST_DOMAINRENEW_EXPYEAR"
-                return $ sequenceT (d, a, fmap toInt $ y)
+                return $ sequenceT (d, a, fmap toInt y)
             toInt x = read x :: Int
             in withSRSConfigArgs getSettings run
 
@@ -189,13 +189,13 @@ suite = do
             run cfg d = do
                 let un = fromJust $ makeUsername "webmaster"
                 let pwd = fromJust $ makePassword validPassword
-                (unPassword pwd) `shouldBe` validPassword
+                unPassword pwd `shouldBe` validPassword
                 res <- doRequest $ ChangeDomainOwnership cfg d un pwd
                 case res of
                     Right (GenericSuccess _) -> pass
-                    Left e                   -> error $ e
+                    Left e                   -> error e
                     _                        -> error "This should never happen."
-            in withSRSConfigArgs (lookupEnv "SRSTEST_DOMAINPASSWORD_SEND") run 
+            in withSRSConfigArgs (lookupEnv "SRSTEST_DOMAINPASSWORD_SEND") run
 
         it "cannot use an invalid password" $ do
             let pwd = makePassword invalidPassword
@@ -206,7 +206,7 @@ suite = do
                 res <- doRequest $ SendDomainPassword cfg d "owner" False
                 case res of
                     Right (GenericSuccess _) -> pass
-                    Left e                   -> error $ e
+                    Left e                   -> error e
                     _                        -> error "This should never happen."
             in withSRSConfigArgs (lookupEnv "SRSTEST_DOMAINPASSWORD_SEND") run
 
@@ -216,14 +216,9 @@ suite = do
                 res <- doRequest $ SetCookie cfg d u p
                 case res of
                     Right (CookieResult _) -> pass
-                    Left e                 -> error $ e
+                    Left e                 -> error e
                     _                      -> error "This should never happen."
-            getSettings = do
-                d <- liftIO $ lookupEnv "SRSTEST_COOKIE_DOMAINGET_DOMAIN"
-                u <- liftIO $ lookupEnv "SRSTEST_COOKIE_DOMAINGET_USER"
-                p <- liftIO $ lookupEnv "SRSTEST_COOKIE_DOMAINGET_PASS"
-                return $ sequenceT (d, join $ fmap makeUsername u, join $ fmap makePassword p)
-            in withSRSConfigArgs getSettings run
+            in withSRSConfigArgs getCookieSettings run
 
         it "gets a domain using a cookie" $ let
             run cfg (d,u,p) = do
@@ -232,20 +227,14 @@ suite = do
                     Right (CookieResult jar) -> do
                         res2 <- doRequest (GetDomainWithCookie cfg d $ cookieStr jar)
                         case res2 of
-                            Right (DomainResult d') -> do
-                                (domainName d') `shouldBe` d
-                            Left e                      -> error $ e
-                            _                           -> error "This should never happen."
-                    Left e                 -> error $ e
+                            Right (DomainResult d') -> domainName d' `shouldBe` d
+                            Left e                  -> error e
+                            _                       -> error "This should never happen."
+                    Left e                 -> error e
                     _                      -> error "This should never happen."
-            getSettings = do
-                d <- liftIO $ lookupEnv "SRSTEST_COOKIE_DOMAINGET_DOMAIN"
-                u <- liftIO $ lookupEnv "SRSTEST_COOKIE_DOMAINGET_USER"
-                p <- liftIO $ lookupEnv "SRSTEST_COOKIE_DOMAINGET_PASS"
-                return $ sequenceT (d, join $ fmap makeUsername u, join $ fmap makePassword p)
-            in withSRSConfigArgs getSettings run
+            in withSRSConfigArgs getCookieSettings run
 
-    describe "Domain Updates" $ 
+    describe "Domain Updates" $
         it "can set whois privacy" $ let
             run cfg (d,s) = do
                 let s' = if s then "enable" else "disable"
@@ -275,7 +264,7 @@ getSRSConfig = do
 -- If we don't have config, we pass (defer) the expectation.
 withSRSConfig :: (SRSConfig -> Expectation) -> Expectation
 withSRSConfig fn = do
-    cfg <- liftIO $ getSRSConfig
+    cfg <- liftIO getSRSConfig
     case cfg of
         Just c -> fn c
         _      -> do
@@ -289,13 +278,20 @@ withSRSConfigArgs
     -> (SRSConfig -> a -> Expectation)
     -> Expectation
 withSRSConfigArgs getArgs fn = do
-    cfg  <- liftIO $ getSRSConfig
-    args <- liftIO $ getArgs
+    cfg  <- liftIO getSRSConfig
+    args <- liftIO getArgs
     case sequenceT (cfg, args) of
         Just (c, a) -> fn c a
         _           -> do
             liftIO $ putStrLn "WARNING: Cannot get OpenSRS configuration and/or test arguments."
             pass
+
+getCookieSettings :: IO (Maybe (String, SRSUsername, Password))
+getCookieSettings = do
+    d <- liftIO $ lookupEnv "SRSTEST_COOKIE_DOMAINGET_DOMAIN"
+    u <- liftIO $ lookupEnv "SRSTEST_COOKIE_DOMAINGET_USER"
+    p <- liftIO $ lookupEnv "SRSTEST_COOKIE_DOMAINGET_PASS"
+    return $ sequenceT (d, join $ fmap makeUsername u, join $ fmap makePassword p)
 
 -- | Explicitly pass a test.
 pass :: Expectation
