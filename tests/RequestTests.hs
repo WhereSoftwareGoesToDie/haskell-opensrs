@@ -63,7 +63,7 @@ makeDomain dname = do
 
 suite :: Spec
 suite = do
-    describe "Domain List" $
+    describe "Domain List" .
         it "can list domains with expiry in a given period" $ let
             run cfg = do
                 t <- getCurrentTime
@@ -81,13 +81,13 @@ suite = do
         it "looks up a valid free domain" $ let
             run cfg d = do
                 res <- doRequest $ LookupDomain cfg d
-                res `shouldBe` (Right $ DomainAvailabilityResult $ Available d)
+                res `shouldBe` (Right . DomainAvailabilityResult $ Available d)
             in withSRSConfigArgs (lookupEnv "SRSTEST_DOMAINLOOKUP_FREE") run
 
         it "looks up a valid taken domain" $ let
             run cfg d = do
                 res <- doRequest $ LookupDomain cfg d
-                res `shouldBe` (Right $ DomainAvailabilityResult $ Unavailable d)
+                res `shouldBe` (Right . DomainAvailabilityResult $ Unavailable d)
             in withSRSConfigArgs (lookupEnv "SRSTEST_DOMAINLOOKUP_TAKEN") run
 
         it "gets a valid existing domain" $ let
@@ -106,7 +106,7 @@ suite = do
                 res <- doRequest $ GetDomain cfg d
                 fromLeft res `shouldContain` "415: Authentication Error.")
 
-    describe "Domain Registration" $
+    describe "Domain Registration" .
         it "registers a domain" $ let
             run cfg d = do
                 domain <- makeDomain d
@@ -122,7 +122,7 @@ suite = do
             pwd = fromJust $ makePassword "aTestingPassWord123"
             in withSRSConfigArgs (lookupEnv "SRSTEST_DOMAINREGISTER_NAME") run
 
-    describe "Domain Registration" $ do
+    describe "Domain Registration/Renewal" $ do
         it "registers and renews a new domain" $ let
             run cfg d = do
                 domain <- makeDomain d
@@ -150,7 +150,7 @@ suite = do
                         case res of
                             Right (DomainResult d2) -> do
                                 -- Stage 3: Renew domain
-                                let expyear = read $ formatTime defaultTimeLocale "%Y" $ fromJust $ domainExpireDate d2
+                                let expyear = read . formatTime defaultTimeLocale "%Y" . fromJust $ domainExpireDate d2
                                 let req = RenewDomain cfg (domainName d2) (domainAutoRenew d2) (fromJust $ domainAffiliateID d2) expyear True 1
                                 res <- doRequest req
                                 case res of
@@ -234,7 +234,7 @@ suite = do
                     _                      -> error "This should never happen."
             in withSRSConfigArgs getCookieSettings run
 
-    describe "Domain Updates" $
+    describe "Domain Updates" .
         it "can set whois privacy" $ let
             run cfg (d,s) = do
                 let s' = if s then "enable" else "disable"

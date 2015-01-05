@@ -51,6 +51,7 @@ import Data.Hash.MD5
 import Data.List
 import Data.Map
 import Data.Maybe
+import Data.Monoid
 import Debug.Trace
 
 import Network.Wreq
@@ -119,7 +120,9 @@ doRequest' parser r = do
 
 -- | Transforms a SRSResponse into an error string
 responseError :: SRSResponse -> String
-responseError resp = show (srsResponseCode resp) ++ ": " ++ srsResponseText resp
+responseError resp = concat [show $ srsResponseCode resp,
+                             ": ",
+                             srsResponseText resp]
 
 -- | Posts request to OpenSRS
 postRequest :: SRSRequest -> IO (Response BSL8.ByteString)
@@ -128,22 +131,22 @@ postRequest req = do
     postWith opts (srsEndpoint $ requestConfig req) postBody
   where
     opts = defaults
-            & header "X-Username" .~ [pack $ srsUsername $ requestConfig req]
+            & header "X-Username" .~ [pack . srsUsername $ requestConfig req]
             & header "X-Signature" .~ [pack sig]
-            & header "Content-Length" .~ [pack $ show $ BSL8.length ps]
+            & header "Content-Length" .~ [pack . show $ BSL8.length ps]
     sig = md5Wrap (srsKey $ requestConfig req) (BSL8.unpack ps)
     postBody = XmlPost ps
-    ps = toLazyByteString $ render $ requestXML req
+    ps = toLazyByteString . render $ requestXML req
 
 -- | MD5 signature generator for OpenSRS
 md5Wrap :: String -> String -> String
-md5Wrap pk content = md5pack (md5pack (content ++ pk) ++ pk)
+md5Wrap pk content = md5pack (md5pack (content <> pk) <> pk)
   where
     md5pack = md5s . Str
 
 -- | Debug an XML string.
 tryDebug :: SRSConfig -> String -> IO ()
-tryDebug cfg s = when (srsDebug cfg) $ traceIO $ prettyXML "  " s
+tryDebug cfg s = when (srsDebug cfg) . traceIO $ prettyXML "  " s
 
 --------------------------------------------------------------------------------
 -- | Internal XML helper: Turns XML string into a list of XML TagTrees
@@ -163,13 +166,13 @@ parseResponse s = let
 -- | Parse domain list
 parseDomainList :: String -> DomainList
 parseDomainList s = DomainList (read $ getText xml "<item key='total'>")
-                               (Prelude.map makeDomain domainItems)
+                               (fmap makeDomain domainItems)
                                (getText xml "<item key='remainder'>" == "1")
   where
     xml = parseTags s
     xmlt = toXmlTree s
     -- domains
-    domainItems = kidsWith "item" $ topMatching "<item key='exp_domains'>" $ topMatching "<item key='attributes'>" xmlt
+    domainItems = kidsWith "item" . topMatching "<item key='exp_domains'>" $ topMatching "<item key='attributes'>" xmlt
     makeDomain domains =
         let
             gtc = getText' . flattenTree $ [domains]
@@ -184,23 +187,23 @@ parseDomainList s = DomainList (read $ getText xml "<item key='total'>")
 parseDomain :: DomainName -> String -> Domain
 parseDomain dn s = Domain dn
     (getText xml "<item key='auto_renew'>" == "1")
-    (fromList . Prelude.map makeContact $ contactSets)
+    (fromList . fmap makeContact $ contactSets)
     (toUTC' $ getText xml "<item key='registry_updatedate'>")
     (getText xml "<item key='sponsoring_rsp'>" == "1")
     (toUTC' $ getText xml "<item key='registry_createdate'>")
     (Just $ getText xml "<item key='affiliate_id'>")
     (getText xml "<item key='let_expire'>" == "1")
     (toUTC' $ getText xml "<item key='registry_expiredate'>")
-    (Prelude.map makeNameserver nameserverSets)
+    (fmap makeNameserver nameserverSets)
   where
     xml = parseTags s
     xmlt = toXmlTree s
     -- contacts
-    contactSets = kidsWith "item" $ topMatching "<item key='contact_set'>" $ topMatching "<item key='attributes'>" xmlt
+    contactSets = kidsWith "item" . topMatching "<item key='contact_set'>" $ topMatching "<item key='attributes'>" xmlt
     makeContact contacts =
         let
             gtc = getText' . flattenTree $ [contacts]
-            k = fromJust $ Data.List.lookup "key" $ currentTagAttr contacts
+            k = fromJust . Data.List.lookup "key" $ currentTagAttr contacts
             v = Contact (Just $ gtc "<item key='first_name'>")
                     (Just $ gtc "<item key='last_name'>")
                     (Just $ gtc "<item key='org_name'>")
@@ -216,7 +219,7 @@ parseDomain dn s = Domain dn
                     (Just $ gtc "<item key='country'>")
         in (k, v)
     -- namespaces
-    nameserverSets = kidsWith "dt_assoc" $ kidsWith "item" $ topMatching "<item key='nameserver_list'>" $ topMatching "<item key='attributes'>" xmlt
+    nameserverSets = kidsWith "dt_assoc" . kidsWith "item" . topMatching "<item key='nameserver_list'>" $ topMatching "<item key='attributes'>" xmlt
     makeNameserver nameservers =
         let
             gtc = getText' . flattenTree $ [nameservers]
@@ -278,7 +281,7 @@ parseDomainRegistration _ s =
 --------------------------------------------------------------------------------
 -- | Extract TLD Data as a key/value dictionary.
 parseTldDataDict :: String -> TLDData
-parseTldDataDict s = fromList . Prelude.map (makeTld . return) $ tldroots
+parseTldDataDict s = fromList . fmap (makeTld . return) $ tldroots
   where
     xml = parseTags s
     xmlt = tagTree xml
@@ -286,14 +289,14 @@ parseTldDataDict s = fromList . Prelude.map (makeTld . return) $ tldroots
     tldroots = kidsWith "item" $ topMatching "<item key='tld_data'>" xmlt
     makeTld t =
         let
-            k = fromJust $ Data.List.lookup "key" $ currentTagAttr $ head t
+            k = fromJust . Data.List.lookup "key" . currentTagAttr $ head t
             kids = kidsWith "item" $ topMatching "dt_assoc" t
-            v = fromList $ Prelude.map (makeItems . return) kids
+            v = fromList $ fmap (makeItems . return) kids
         in (k, v)
     -- 2nd level
     makeItems t =
         let
-            k = fromJust $ Data.List.lookup "key" $ currentTagAttr $ head t
+            k = fromJust . Data.List.lookup "key" . currentTagAttr $ head t
             v = itemInnerValue $ flattenTree t
         in (k, v)
 

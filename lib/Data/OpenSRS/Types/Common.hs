@@ -15,6 +15,7 @@ module Data.OpenSRS.Types.Common (
     unPassword
 ) where
 
+import Data.Monoid
 import Data.String.Utils
 import Data.Time
 
@@ -41,7 +42,7 @@ makeUsername p = if all (`elem` allowed) p
     then Just $ SRSUsername p
     else Nothing
   where
-    allowed = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9']
+    allowed = ['A'..'Z'] <> ['a'..'z'] <> ['0'..'9']
 
 instance Show SRSUsername where
     show (SRSUsername u) = u
@@ -58,7 +59,7 @@ makePassword p = if all (`elem` allowed) p
     then Just $ Password p
     else Nothing
   where
-    allowed = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ "[]()!@\\$^,.~|=-+_{}#"
+    allowed = ['A'..'Z'] <> ['a'..'z'] <> ['0'..'9'] <> "[]()!@\\$^,.~|=-+_{}#"
 
 instance Show Password where
     show (Password p) = p

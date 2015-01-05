@@ -5,12 +5,13 @@ module Text.HTML.TagSoup.Pretty (
 ) where
 
 import Data.List
+import Data.Monoid
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Tree
 import Text.StringLike
 
 prettyXML :: String -> String -> String
-prettyXML tabOut = concatMap (prettyTree tabOut) . tagTree . parseTags
+prettyXML tabOut = (=<<) (prettyTree tabOut) . tagTree . parseTags
 
 prettyTree :: (StringLike s) => String -> TagTree s -> String
 prettyTree = prettyTree' ""
@@ -21,7 +22,7 @@ prettyTree' prefix tabOut (TagLeaf t) = case renderTag t of
     x  -> concat [prefix, x, "\n"]
 prettyTree' prefix tabOut (TagBranch n a tr) = concat [
     prefix, renderTag $ TagOpen n a, "\n",
-    concatMap (prettyTree' (prefix ++ tabOut) tabOut) tr,
+    (=<<) (prettyTree' (prefix <> tabOut) tabOut) tr,
     prefix, renderTag $ TagClose n, "\n"]
 
 renderTag :: (StringLike s) => Tag s -> String
@@ -32,6 +33,6 @@ renderTag (TagComment s) = concat ["<!-- ", toString s, " -->"]
 renderTag _              = ""
 
 renderAttrs :: (StringLike s) => [Attribute s] -> String
-renderAttrs = unwords . map renderAttr
+renderAttrs = unwords . fmap renderAttr
   where
       renderAttr (k,v) = concat [toString k, "=\"", toString v, "\""]
