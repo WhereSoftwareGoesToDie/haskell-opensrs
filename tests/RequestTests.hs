@@ -187,9 +187,10 @@ suite = do
     describe "Passwords" $ do
         it "can change to a valid password" $ let
             run cfg d = do
+                let un = fromJust $ makeUsername "webmaster"
                 let pwd = fromJust $ makePassword validPassword
                 (unPassword pwd) `shouldBe` validPassword
-                res <- doRequest $ ChangeDomainPassword cfg d pwd
+                res <- doRequest $ ChangeDomainOwnership cfg d un pwd
                 case res of
                     Right (GenericSuccess _) -> pass
                     Left e                   -> error $ e
@@ -202,7 +203,7 @@ suite = do
 
         it "can send passwords to a domain contact" $ let
             run cfg d = do
-                res <- doRequest $ SendDomainPassword cfg d "admin" False
+                res <- doRequest $ SendDomainPassword cfg d "owner" False
                 case res of
                     Right (GenericSuccess _) -> pass
                     Left e                   -> error $ e

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Data.OpenSRS.ToXML (requestXML) where
 
@@ -32,10 +33,10 @@ requestXML (ListDomainsByExpiry c ds de p l) = XmlDocument UTF8 doctype nodes
          ("page", show p),
          ("limit", show l)]
     dateStr = formatTime defaultTimeLocale "%Y-%m-%d"
-requestXML (GetDomain c domain_name) = XmlDocument UTF8 doctype nodes
+requestXML GetDomain{..} = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress c)
-        [("domain", domain_name),
+    nodes = wrapRequest $ genericRequest "GET" "DOMAIN" (srsIpAddress requestConfig)
+        [("domain", requestDomainName),
          ("type", "all_info"),
          ("limit", "10")]
 requestXML (GetDomainTldData c domain_name) = XmlDocument UTF8 doctype nodes
@@ -101,14 +102,15 @@ requestXML (RegisterDomain c domain cc comments enc lock park priv handle period
         Just tld' -> [itemParent "tld_data" [tag "dt_assoc" $
             itemParentMap (\vmap -> [tag "dt_assoc" $ itemMap vmap]) tld'
             ]]
-requestXML (ChangeDomainPassword c domain_name password) = XmlDocument UTF8 doctype nodes
+requestXML (ChangeDomainOwnership c domain_name username password) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "CHANGE" "PASSWORD" (srsIpAddress c)
+    nodes = wrapRequest $ genericRequest "CHANGE" "OWNERSHIP" (srsIpAddress c)
         [("domain", domain_name),
-         ("reg_password", show password)]
+         ("username", show username),
+         ("password", show password)]
 requestXML (SendDomainPassword c domain_name sendTo subUser) = XmlDocument UTF8 doctype nodes
   where
-    nodes = wrapRequest $ genericRequest "CHANGE" "PASSWORD" (srsIpAddress c)
+    nodes = wrapRequest $ genericRequest "SEND_PASSWORD" "DOMAIN" (srsIpAddress c)
         [("domain_name", domain_name),
          ("send_to", sendTo),
          ("sub_user", boolVal subUser)]

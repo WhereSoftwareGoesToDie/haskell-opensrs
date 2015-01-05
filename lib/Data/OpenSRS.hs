@@ -98,7 +98,7 @@ doRequest r@(ModifyDomain {}) =
     doRequest' (GenericSuccess . parseSuccess) r
 doRequest r@(UpdateDomain {}) =
     doRequest' (GenericSuccess . parseSuccess) r
-doRequest r@(ChangeDomainPassword {}) =
+doRequest r@(ChangeDomainOwnership {}) =
     doRequest' (GenericSuccess . parseSuccess) r
 doRequest r@(SendDomainPassword {}) =
     doRequest' (GenericSuccess . parseSuccess) r
