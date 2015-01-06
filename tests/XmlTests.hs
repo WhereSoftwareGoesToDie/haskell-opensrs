@@ -10,6 +10,9 @@ import Data.OpenSRS.ToXML
 import Data.OpenSRS.Types
 import Data.Time
 import Test.Hspec
+import Text.HTML.TagSoup
+import Text.HTML.TagSoup.Tree
+import Text.HTML.TagSoup.Manipulators
 import Text.XmlHtml
 
 -- | API configuration to use in these (non-integration) tests.
@@ -45,11 +48,28 @@ testDomain1 = do
         Nameserver (Just "ns1.anchor.net.au") (Just "0") (Just "127.0.0.1"),
         Nameserver (Just "ns2.anchor.net.au") (Just "0") (Just "127.0.0.2") ]
 
+testDoc1 :: String
+testDoc1 = "<!DOCTYPE OPS_envelope SYSTEM \"ops.dtd\"><OPS_envelope><header><version>0.9</version></header><body><data_block><dt_assoc><item key=\"protocol\">XCP</item><item key=\"action\">SET</item><item key=\"object\">COOKIE</item><item key=\"registrant_ip\">127.0.0.1</item><item key=\"attributes\"><dt_assoc><item key=\"domain\">foo.com</item><item key=\"reg_username\">webmaster</item><item key=\"reg_password\">myLovelyHorse</item></dt_assoc></item></dt_assoc></data_block></body></OPS_envelope>"
+
 reqXML :: SRSRequest -> String
 reqXML = BSL8.unpack . toLazyByteString . render . requestXML
 
 suite :: Spec
-suite =
+suite = do
+    describe "XML" $ do
+        it "can get a string using a tag as a source" $
+            getText (parseTags testDoc1) "<version>" `shouldBe` "0.9"
+
+        it "treats quotes in getText queries the same" $ do
+            getText (parseTags testDoc1) "<item key='domain'>" `shouldBe` "foo.com"
+            getText (parseTags testDoc1) "<item key=\"domain\">" `shouldBe` "foo.com"
+
+        it "can get items within tree" $ do
+            let xmlt = tagTree $ parseTags testDoc1
+            let items = flattenTree . kidsWith "item" $ topMatching "<item key='attributes'>" xmlt
+            getText' items "<item key='domain'>" `shouldBe` "foo.com"
+            getText' items "<item key='reg_password'>" `shouldBe` "myLovelyHorse"
+
     describe "Domains" $ do
         it "Can be marshalled into a registration request" $ do
             d <- testDomain1
