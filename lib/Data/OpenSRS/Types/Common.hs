@@ -3,6 +3,7 @@
 module Data.OpenSRS.Types.Common (
     toUTC,
     toUTC',
+    readInteger,
 
     DomainName,
 
@@ -18,6 +19,8 @@ module Data.OpenSRS.Types.Common (
 import Data.Monoid
 import Data.String.Utils
 import Data.Time
+import qualified Data.Text as T
+import Data.Text.Read
 
 --------------------------------------------------------------------------------
 -- | Converts strings to UTCTime
@@ -29,6 +32,12 @@ toUTC' :: String -> Maybe UTCTime
 toUTC' = maybeRead
 
 type DomainName = String
+
+-- | Read integers
+readInteger :: String -> Maybe Int
+readInteger x = case decimal $ T.pack x of
+    Right (n,_) -> Just n
+    _           -> Nothing
 
 --------------------------------------------------------------------------------
 -- | Wrapper around strings representing passwords.

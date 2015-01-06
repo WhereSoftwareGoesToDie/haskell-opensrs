@@ -11,6 +11,7 @@ module Data.OpenSRS.Types (
 
     toUTC,
     toUTC',
+    readInteger,
 
     SRSConfig (..),
 
@@ -144,6 +145,10 @@ data SRSResponse = SRSResponse {
     srsSuccess      :: Bool,
     srsResponseText :: String,
     srsResponseCode :: Int
+} | SRSResponseFailure {
+    srsSuccess      :: Bool,
+    srsResponseText :: String,
+    srsResponseCode :: Int
 } deriving (Eq, Show)
 
 data SRSResult = DomainListResult { resultGetList :: DomainList }
@@ -194,14 +199,14 @@ data DomainRenewal = Renewed {
 type SRSCookie = String
 
 data SRSCookieJar = SRSCookieJar {
-    cookieName        :: DomainName,
-    cookieStr         :: SRSCookie,
-    cookieDomainCount :: Int,
-    cookieExpiry      :: UTCTime,
-    cookieIsOwner     :: Bool,
-    cookieLastAccess  :: Maybe UTCTime,
-    cookieLastIP      :: String,
-    cookiePermission  :: String,
-    cookieWaitingReqs :: Int
+    cookieName         :: DomainName,
+    cookieStr          :: SRSCookie,
+    cookieDomainCount  :: Int,
+    cookieDomainExpiry :: UTCTime,
+    cookieIsOwner      :: Bool,
+    cookieLastAccess   :: Maybe UTCTime,
+    cookieLastIP       :: String,
+    cookiePermission   :: String,
+    cookieWaitingReqs  :: Int
 } deriving (Show, Eq)
 

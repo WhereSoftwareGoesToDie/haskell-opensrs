@@ -41,6 +41,7 @@ library
                      , tagsoup
                      , text
                      , time
+                     , tuple
                      , wreq
                      , xmlhtml
   hs-source-dirs:      lib
@@ -68,6 +69,7 @@ test-suite xml-tests
                      , tagsoup
                      , text
                      , time
+                     , tuple
                      , wreq
                      , xmlhtml
 
