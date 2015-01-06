@@ -147,11 +147,11 @@ doRequest' parser e r = do
     let unpackedb = BSL8.unpack (res ^. responseBody)
     void $ tryDebug (requestConfig r) unpackedb
     let resp = parseResponse unpackedb
-    return $ case srsSuccess resp of
-        True -> case parser unpackedb of
+    return $ if srsSuccess resp
+        then case parser unpackedb of
             Just x -> Right x
             _      -> Left e
-        _    -> Left $ responseError resp
+        else Left $ responseError resp
 
 -- | Transforms a SRSResponse into an error string
 responseError :: SRSResponse -> String

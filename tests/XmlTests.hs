@@ -101,17 +101,17 @@ suite :: Spec
 suite = do
     describe "XML inspection" $ do
         it "can get a string using a tag as a source" $
-            (stripStr $ getText (parseTags testDoc1) "<version>") `shouldBe` "0.9"
+            stripStr (getText (parseTags testDoc1) "<version>") `shouldBe` "0.9"
 
         it "treats quotes in getText queries the same" $ do
-            (stripStr $ getText (parseTags testDoc1) "<item key='domain'>") `shouldBe` "foo.com"
-            (stripStr $ getText (parseTags testDoc1) "<item key=\"domain\">") `shouldBe` "foo.com"
+            stripStr (getText (parseTags testDoc1) "<item key='domain'>") `shouldBe` "foo.com"
+            stripStr (getText (parseTags testDoc1) "<item key=\"domain\">") `shouldBe` "foo.com"
 
         it "can get items within tree" $ do
             let xmlt = tagTree $ parseTags testDoc1
             let items = flattenTree . kidsWith "item" $ topMatching "<item key='attributes'>" xmlt
-            (stripStr $ getText' items "<item key='domain'>") `shouldBe` "foo.com"
-            (stripStr $ getText' items "<item key='reg_password'>") `shouldBe` "myLovelyHorse"
+            stripStr (getText' items "<item key='domain'>") `shouldBe` "foo.com"
+            stripStr (getText' items "<item key='reg_password'>") `shouldBe` "myLovelyHorse"
 
         it "can prettyprint TagSoup XML documents" $
             prettyXML "  " testDoc1 `shouldBe` testDoc1

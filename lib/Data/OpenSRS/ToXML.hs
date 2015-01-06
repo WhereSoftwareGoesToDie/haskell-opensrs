@@ -13,6 +13,8 @@ import Data.Time
 import System.Locale (defaultTimeLocale)
 import Text.XmlHtml
 
+{-# ANN module "HLint: ignore Use =<<" #-}
+
 ----------------------------------------
 -- | Actually generates request XML
 requestXML :: SRSRequest -> Document
@@ -127,11 +129,11 @@ domainToNodes :: Domain -> [Node]
 domainToNodes domain = [
     itemNode "domain" (domainName domain),
     itemParent "contact_set" [
-        tag "dt_assoc" ((=<<) contactToNodes . toList $ domainContactSet domain)
+        tag "dt_assoc" (concatMap contactToNodes . toList $ domainContactSet domain)
     ],
     itemParent "nameserver_list" [
-        tag "dt_array" ((=<<) nsToNodes . zip [0..] $ domainNameservers domain)
-        ]]
+        tag "dt_array" (concatMap nsToNodes . zip [0..] $ domainNameservers domain)
+    ]]
 
 -- | contacts
 contactToNodes :: (String, Contact) -> [Node]
