@@ -26,7 +26,11 @@ prettyTree' prefix tabOut (TagBranch n a tr) = concat [
     prefix, renderTag $ TagClose n, "\n"]
 
 renderTag :: (StringLike s) => Tag s -> String
-renderTag (TagOpen s a)  = concat ["<", toString s, " ", renderAttrs a, ">"]
+renderTag (TagOpen s a)  = concat ["<", toString s, attrs, ">"]
+  where
+  	attrs = case renderAttrs a of
+  		"" -> ""
+  		x  -> " " <> x
 renderTag (TagClose s)   = concat ["</", toString s, ">"]
 renderTag (TagText s)    = toString s
 renderTag (TagComment s) = concat ["<!-- ", toString s, " -->"]
@@ -35,4 +39,8 @@ renderTag _              = ""
 renderAttrs :: (StringLike s) => [Attribute s] -> String
 renderAttrs = unwords . fmap renderAttr
   where
-      renderAttr (k,v) = concat [toString k, "=\"", toString v, "\""]
+    renderAttr (k,v) = case (strNull k, strNull v) of
+    	(True, True)  -> ""
+    	(False, True) -> toString k
+    	(True, False) -> concat ["\"", toString v, "\""]
+    	_             -> concat [toString k, "=\"", toString v, "\""]
