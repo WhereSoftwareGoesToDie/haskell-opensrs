@@ -48,30 +48,30 @@ The following types of `SRSRequest` are supported:
 
 * `ListDomainsByExpiry requestConfig requestStartDate requestEndDate requestPage requestLimit`  
   Lists domain by expiry date. Can be used to enumerate all domains in your reseller account.  
-  eg. ```haskell
-  endTime <- getCurrentTime
-  let startTime = addUTCTime ((86400 * 365 * -1) :: NominalDiffTime) endTime
-  let req = ListDomainsByExpiry cfg startTime endTime 0 100
+  eg. ```haskell  
+  endTime <- getCurrentTime  
+  let startTime = addUTCTime ((86400 * 365 * -1) :: NominalDiffTime) endTime  
+  let req = ListDomainsByExpiry cfg startTime endTime 0 100  
   ```
 * `GetDomain requestConfig requestDomainName`  
   Gets a domain by name.  
-  eg. ```haskell
-  let req = GetDomain cfg "foo.com"
+  eg. ```haskell  
+  let req = GetDomain cfg "foo.com"  
   ```
 * `GetDomainWithCookie requestConfig requestDomainName requestCookie`  
   If you have a cookie from a previous request, fetch a domain.  
-  eg. ```haskell
-  let req = GetDomainWithCookie cfg "foo.com" cookieStr
+  eg. ```haskell  
+  let req = GetDomainWithCookie cfg "foo.com" cookieStr  
   ```
 * `GetDomainTldData requestConfig requestDomainName`  
   Fetches TLD data for this domain.  
-  eg. ```haskell
-  let req = GetDomainTldData cfg "foo.com"
+  eg. ```haskell  
+  let req = GetDomainTldData cfg "foo.com"  
   ```
 * `LookupDomain requestConfig requestDomainName`  
   Checks if a given domain exists under your reseller account.  
-  eg. ```haskell
-  let req = LookupDomain cfg "foo.com"
+  eg. ```haskell  
+  let req = LookupDomain cfg "foo.com"  
   ```
 * `RegisterDomain requestConfig requestDomain requestChangeContact requestComments requestEncoding requestLock requestPark requestWhoisPrivacy requestHandleNow requestPeriod requestUsername requestPassword requestRegType requestTldData`  
    eg. ```haskell
@@ -117,60 +117,59 @@ The following types of `SRSRequest` are supported:
     let req = RegisterDomain cfg domain changeContact comments encoding lock park whois handleNow regPeriod username password regType tldData
    ```
 * `ModifyDomain requestConfig requestDomainName requestAffectLinked requestData requestTldData`  
-   Modifies particular domain parameters.  
-   See the [OpenSRS API documentation](https://opensrs.com/resources/documentation/) for more details on what can be modified using this call.  
-    eg. ```haskell
-    let req = ModifyDomain cfg "foo.com" False (fromList [("data", "whois_privacy_state"), ("state", "enable")]) Nothing
-    ```
+  Modifies particular domain parameters.  
+  See the [OpenSRS API documentation](https://opensrs.com/resources/documentation/) for more details on what can be modified using this call.  
+  eg. ```haskell
+  let req = ModifyDomain cfg "foo.com" False (fromList [("data", "whois_privacy_state"), ("state", "enable")]) Nothing
+  ```
 * `UpdateDomain requestConfig requestDomain`  
   Use to update contact information and nameservers only.  
-    eg. ```haskell
-    let newContact = Contact (Just "Jane")
-                        (Just "Doe")
-                        (Just "Frobozz Pty Ltd")
-                        (Just "geoffrey.roberts@anchor.com.au")
-                        (Just "+61.299999999")
-                        Nothing
-                        (Just "Frobozz Pty Ltd")
-                        (Just "Level 50")
-                        (Just "1 George Street")
-                        (Just "Sydney")
-                        (Just "NSW")
-                        (Just "2000")
-                        (Just "AU")
-
-    let newDomainContacts = fromList [("owner", c),
-                                   ("admin", c),
-                                   ("billing", c),
-                                   ("tech", c)]
-    let domain' = domain { domainContactSet = newDomainContacts }
-    let req = UpdateDomain cfg domain'
-    ```
+  eg. ```haskell
+  let newContact = Contact (Just "Jane")
+                           (Just "Doe")
+                           (Just "Frobozz Pty Ltd")
+                           (Just "geoffrey.roberts@anchor.com.au")
+                           (Just "+61.299999999")
+                           Nothing
+                           (Just "Frobozz Pty Ltd")
+                           (Just "Level 50")
+                           (Just "1 George Street")
+                           (Just "Sydney")
+                           (Just "NSW")
+                           (Just "2000")
+                           (Just "AU")
+  let newDomainContacts = fromList [("owner", c),
+                                    ("admin", c),
+                                    ("billing", c),
+                                    ("tech", c)]
+  let domain' = domain { domainContactSet = newDomainContacts }
+  let req = UpdateDomain cfg domain'
+  ```
 * `RenewDomain requestConfig requestDomainName requestAutoRenew requestAffiliateID requestExpiryYear requestHandleNow requestPeriod`  
   Renew a domain that you have control over.  
-    eg. ```haskell
-    let req = RenewDomain cfg "foo.com" False "12345" 2015 True 1
-    ```
+  eg. ```haskell
+  let req = RenewDomain cfg "foo.com" False "12345" 2015 True 1
+  ```
 * `ChangeDomainOwnership requestConfig requestDomainName requestUsername requestPassword`  
   Change the username and password used to manage a domain. It will still be under the control of your reseller account, but this will change user credentials.  
-   eg. ```haskell
-   let username = fromJust $ makeUsername "webmaster"
-   let password = fromJust $ makeUsername "totesSecureEh"
-   let req = ChangeDomainOwnership cfg "foo.com" username password
-   ```
+  eg. ```haskell
+  let username = fromJust $ makeUsername "webmaster"
+  let password = fromJust $ makeUsername "totesSecureEh"
+  let req = ChangeDomainOwnership cfg "foo.com" username password
+  ```
 * `SendDomainPassword requestConfig requestDomainName requestSendTo requestToSubuser`  
   Send a domain password to its administrator or owner.  
-   `requestSendTo` must be either "admin" or "owner".  
-   eg. ```haskell
-   let req = SendDomainPassword cfg "foo.com" "owner" False
-   ```
+  `requestSendTo` must be either "admin" or "owner".  
+  eg. ```haskell
+  let req = SendDomainPassword cfg "foo.com" "owner" False
+  ```
 * `SetCookie requestConfig requestDomainName requestUsername requestPassword`  
   Gets a cookie for a given domain, using its username and password credentials to authenticate.  
-   eg. ```haskell
-   let username = fromJust $ makeUsername "webmaster"
-   let password = fromJust $ makeUsername "password123"
-   let req = SetCookie cfg "foo.com" username password
-   ```
+  eg. ```haskell
+  let username = fromJust $ makeUsername "webmaster"
+  let password = fromJust $ makeUsername "password123"
+  let req = SetCookie cfg "foo.com" username password
+  ```
 
 ## Installation for usage
 
