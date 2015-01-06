@@ -8,11 +8,13 @@ import Data.Map
 import Data.Maybe
 import Data.OpenSRS.ToXML
 import Data.OpenSRS.Types
+import Data.Text hiding (unlines)
 import Data.Time
 import Test.Hspec
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Tree
 import Text.HTML.TagSoup.Manipulators
+import Text.HTML.TagSoup.Pretty
 import Text.XmlHtml
 
 -- | API configuration to use in these (non-integration) tests.
@@ -49,26 +51,70 @@ testDomain1 = do
         Nameserver (Just "ns2.anchor.net.au") (Just "0") (Just "127.0.0.2") ]
 
 testDoc1 :: String
-testDoc1 = "<!DOCTYPE OPS_envelope SYSTEM \"ops.dtd\"><OPS_envelope><header><version>0.9</version></header><body><data_block><dt_assoc><item key=\"protocol\">XCP</item><item key=\"action\">SET</item><item key=\"object\">COOKIE</item><item key=\"registrant_ip\">127.0.0.1</item><item key=\"attributes\"><dt_assoc><item key=\"domain\">foo.com</item><item key=\"reg_username\">webmaster</item><item key=\"reg_password\">myLovelyHorse</item></dt_assoc></item></dt_assoc></data_block></body></OPS_envelope>"
+testDoc1 = unlines ["<!DOCTYPE OPS_envelope SYSTEM \"ops.dtd\">",
+                    "<OPS_envelope>",
+                    "  <header>",
+                    "    <version>",
+                    "      0.9",
+                    "    </version>",
+                    "  </header>",
+                    "  <body>",
+                    "    <data_block>",
+                    "      <dt_assoc>",
+                    "        <item key=\"protocol\">",
+                    "          XCP",
+                    "        </item>",
+                    "        <item key=\"action\">",
+                    "          SET",
+                    "        </item>",
+                    "        <item key=\"object\">",
+                    "          COOKIE",
+                    "        </item>",
+                    "        <item key=\"registrant_ip\">",
+                    "          127.0.0.1",
+                    "        </item>",
+                    "        <item key=\"attributes\">",
+                    "          <dt_assoc>",
+                    "            <item key=\"domain\">",
+                    "              foo.com",
+                    "            </item>",
+                    "            <item key=\"reg_username\">",
+                    "              webmaster",
+                    "            </item>",
+                    "            <item key=\"reg_password\">",
+                    "              myLovelyHorse",
+                    "            </item>",
+                    "          </dt_assoc>",
+                    "        </item>",
+                    "      </dt_assoc>",
+                    "    </data_block>",
+                    "  </body>",
+                    "</OPS_envelope>"]
+
+stripStr :: String -> String
+stripStr = unpack . strip . pack
 
 reqXML :: SRSRequest -> String
 reqXML = BSL8.unpack . toLazyByteString . render . requestXML
 
 suite :: Spec
 suite = do
-    describe "XML" $ do
+    describe "XML inspection" $ do
         it "can get a string using a tag as a source" $
-            getText (parseTags testDoc1) "<version>" `shouldBe` "0.9"
+            (stripStr $ getText (parseTags testDoc1) "<version>") `shouldBe` "0.9"
 
         it "treats quotes in getText queries the same" $ do
-            getText (parseTags testDoc1) "<item key='domain'>" `shouldBe` "foo.com"
-            getText (parseTags testDoc1) "<item key=\"domain\">" `shouldBe` "foo.com"
+            (stripStr $ getText (parseTags testDoc1) "<item key='domain'>") `shouldBe` "foo.com"
+            (stripStr $ getText (parseTags testDoc1) "<item key=\"domain\">") `shouldBe` "foo.com"
 
         it "can get items within tree" $ do
             let xmlt = tagTree $ parseTags testDoc1
             let items = flattenTree . kidsWith "item" $ topMatching "<item key='attributes'>" xmlt
-            getText' items "<item key='domain'>" `shouldBe` "foo.com"
-            getText' items "<item key='reg_password'>" `shouldBe` "myLovelyHorse"
+            (stripStr $ getText' items "<item key='domain'>") `shouldBe` "foo.com"
+            (stripStr $ getText' items "<item key='reg_password'>") `shouldBe` "myLovelyHorse"
+
+        it "can prettyprint TagSoup XML documents" $
+            prettyXML "  " testDoc1 `shouldBe` testDoc1
 
     describe "Domains" $ do
         it "Can be marshalled into a registration request" $ do
