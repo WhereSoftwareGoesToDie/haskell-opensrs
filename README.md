@@ -10,6 +10,10 @@ name registration API.
 [OpenSRS]: https://opensrs.com/
 [Anchor Systems]: http://www.anchor.com.au/
 
+## Installation
+
+* `cabal install opensrs`
+
 ## Usage
 
 ```haskell
@@ -219,12 +223,39 @@ let password = fromJust $ makeUsername "password123"
 let req = SetCookie cfg "foo.com" username password
 ```
 
-## Installation for usage
-
-* `cabal install opensrs`
-
 ## Installation for development
 
 * Copy `tests/TestConfig.hs.example` to `tests/TestConfig.hs`
 * Customise `tests/TestConfig.hs` to point to your development instance
 * `cabal install --enable-tests`
+
+## Testing
+
+We recommend that you set up a shell script to invoke `cabal test`, as the Request tests are dependent on the existence of environment variables that are required to test the SRS endpoint properly. We recommend that you use the testing endpoint at `horizon.opensrs.net` with your account details to test them against – be sure to seed it with some test domains that you can use.
+
+```bash
+#!/bin/bash
+
+SRS_HOST="https://horizon.opensrs.net:55443" \
+SRS_USER="yourusername" \
+SRS_KEY="yourkeyabcdef1234567890" \
+SRS_IP="127.0.0.1" \
+SRSTEST_DOMAINLOOKUP_FREE="this-domain-does-not-exist-at-all.com" \
+SRSTEST_DOMAINLOOKUP_TAKEN="this-domain-is-taken.com" \
+SRSTEST_DOMAINGET_OURS="this-domain-is-taken.com" \
+SRSTEST_DOMAINGET_NOTOURS="google.com" \
+SRSTEST_DOMAINREGISTER_NAME="automatedtest-domainregistration-123.com" \
+SRSTEST_DOMAINREGISTER_NAME2="automatedtest-domainregistration-456.com" \
+SRSTEST_DOMAINRENEW_NAME="automatedtest-domainrenewal-123.com" \
+SRSTEST_DOMAINRENEW_AFFID="12345" \
+SRSTEST_DOMAINRENEW_EXPYEAR="2015" \
+SRSTEST_DOMAINPASSWORD_SEND="automatedtest-passwordchange-123.com" \
+SRSTEST_COOKIE_DOMAINGET_DOMAIN="automatedtest-cookietest-123.com" \
+SRSTEST_COOKIE_DOMAINGET_USER="webmaster" \
+SRSTEST_COOKIE_DOMAINGET_PASS="aVerySimplePassword" \
+SRSTEST_DOMAINMODIFY_WHOISPRIV_DOMAIN="automatedtest-whoisprivacy-123.com" \
+SRSTEST_DOMAINMODIFY_WHOISPRIV_ENABLE="True" \
+cabal test
+```
+
+Between tests, it makes good sense to increment the counters in `SRSTEST_DOMAINREGISTER_NAME` and `SRSTEST_DOMAINREGISTER_NAME2`, and to flip `SRSTEST_DOMAINMODIFY_WHOISPRIV_ENABLE` between "True" and "False". Feel free to change this to suit your workflow as you see fit.
