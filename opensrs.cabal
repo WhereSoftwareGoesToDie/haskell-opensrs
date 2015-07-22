@@ -34,7 +34,7 @@ library
                      , containers
                      , http-client
                      , http-types
-                     , lens < 4.5
+                     , lens
                      , MissingH
                      , old-locale
                      , safe
@@ -62,7 +62,7 @@ test-suite xml-tests
                      , hspec-expectations
                      , http-client
                      , http-types
-                     , lens < 4.5
+                     , lens
                      , MissingH
                      , old-locale
                      , safe
@@ -88,7 +88,7 @@ test-suite request-tests
                      , hspec-expectations
                      , http-client
                      , http-types
-                     , lens < 4.5
+                     , lens
                      , MissingH
                      , old-locale
                      , safe
