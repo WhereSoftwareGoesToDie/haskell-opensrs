@@ -14,7 +14,9 @@ cabal-version:       >=1.10
 data-files:
         README.md
 extra-source-files:
-        stack-*.yaml
+        stack-2.14.yaml
+        stack-2.18.yaml
+        stack-nightly.yaml
         HLint.hs
         Makefile
 
