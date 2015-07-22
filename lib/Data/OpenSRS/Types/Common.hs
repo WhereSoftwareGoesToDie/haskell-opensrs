@@ -3,6 +3,7 @@
 module Data.OpenSRS.Types.Common (
     toUTC,
     toUTC',
+    readInteger,
 
     DomainName,
 
@@ -15,8 +16,11 @@ module Data.OpenSRS.Types.Common (
     unPassword
 ) where
 
+import Data.Monoid
 import Data.String.Utils
 import Data.Time
+import qualified Data.Text as T
+import Data.Text.Read
 
 --------------------------------------------------------------------------------
 -- | Converts strings to UTCTime
@@ -28,6 +32,12 @@ toUTC' :: String -> Maybe UTCTime
 toUTC' = maybeRead
 
 type DomainName = String
+
+-- | Read integers
+readInteger :: String -> Maybe Int
+readInteger x = case decimal $ T.pack x of
+    Right (n,_) -> Just n
+    _           -> Nothing
 
 --------------------------------------------------------------------------------
 -- | Wrapper around strings representing passwords.
@@ -41,7 +51,7 @@ makeUsername p = if all (`elem` allowed) p
     then Just $ SRSUsername p
     else Nothing
   where
-    allowed = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9']
+    allowed = ['A'..'Z'] <> ['a'..'z'] <> ['0'..'9']
 
 instance Show SRSUsername where
     show (SRSUsername u) = u
@@ -58,7 +68,7 @@ makePassword p = if all (`elem` allowed) p
     then Just $ Password p
     else Nothing
   where
-    allowed = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ "[]()!@\\$^,.~|=-+_{}#"
+    allowed = ['A'..'Z'] <> ['a'..'z'] <> ['0'..'9'] <> "[]()!@\\$^,.~|=-+_{}#"
 
 instance Show Password where
     show (Password p) = p

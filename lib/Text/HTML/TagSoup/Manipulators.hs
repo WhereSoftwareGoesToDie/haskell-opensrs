@@ -20,7 +20,7 @@ getText' xml matcher =
 
 maybeGetText :: [Tag String] -> String -> Maybe String
 maybeGetText xml matcher =
-    fmap itemInnerValue $ headMay $ sections (~== matcher) xml
+    fmap itemInnerValue . headMay $ sections (~== matcher) xml
 
 -- | Get a string out of something
 stringHead :: (a -> String) -> [a] -> String
@@ -37,19 +37,19 @@ itemInnerValue' x = case x !! 1 of
     _             -> ""
 
 topMatching :: (Eq a, StringLike a, Show a) => String -> [TagTree a] -> [TagTree a]
-topMatching matcher = concatMap (topMatching' matcher)
+topMatching matcher = (=<<) (topMatching' matcher)
 
 matchingKids :: (Eq a, StringLike a, Show a) => String -> [TagTree a] -> [TagTree a]
-matchingKids matcher = concatMap (matchingKids' matcher)
+matchingKids matcher = (=<<) (matchingKids' matcher)
 
 kidsWith :: (Eq a, StringLike a, Show a) => String -> [TagTree a] -> [TagTree a]
-kidsWith matcher = concatMap (topMatching matcher) . Prelude.map getKids
+kidsWith matcher = (=<<) (topMatching matcher) . fmap getKids
 
 topMatching' :: (Eq a, StringLike a, Show a) => String -> TagTree a -> [TagTree a]
 topMatching' matcher l@(TagLeaf _) = matchingKids' matcher l
 topMatching' matcher b@(TagBranch _ _ kids) =
     case matchingKids' matcher b of
-        [] -> concatMap (topMatching' matcher) kids
+        [] -> (=<<) (topMatching' matcher) kids
         _  -> [b]
 
 matchingKids' :: (Eq a, StringLike a, Show a) => String -> TagTree a -> [TagTree a]
@@ -73,7 +73,7 @@ currentTagText x = tagIdent $ currentTag x
 -- | Get Attributes for any TagTree
 currentTagAttr :: (Show a, StringLike a) => TagTree a -> [(String, String)]
 currentTagAttr (TagLeaf _) = []
-currentTagAttr (TagBranch _ a _) = Prelude.map (bimap toString toString) a
+currentTagAttr (TagBranch _ a _) = fmap (bimap toString toString) a
 
 -- | Identify any Tag
 tagIdent :: (Show a, StringLike a) => Tag a -> String

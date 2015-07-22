@@ -11,6 +11,7 @@ module Data.OpenSRS.Types (
 
     toUTC,
     toUTC',
+    readInteger,
 
     SRSConfig (..),
 
@@ -106,9 +107,10 @@ data SRSRequest = AllDomains {
     requestPassword      :: Password,
     requestRegType       :: RegistrationType,
     requestTldData       :: Maybe TLDData
-} | ChangeDomainPassword {
+} | ChangeDomainOwnership {
     requestConfig     :: SRSConfig,
     requestDomainName :: DomainName,
+    requestUsername   :: SRSUsername,
     requestPassword   :: Password
 } | SendDomainPassword {
     requestConfig     :: SRSConfig,
@@ -140,6 +142,10 @@ instance Show RegistrationType where
 --------------------------------------------------------------------------------
 -- | OpenSRS Response
 data SRSResponse = SRSResponse {
+    srsSuccess      :: Bool,
+    srsResponseText :: String,
+    srsResponseCode :: Int
+} | SRSResponseFailure {
     srsSuccess      :: Bool,
     srsResponseText :: String,
     srsResponseCode :: Int
@@ -193,14 +199,14 @@ data DomainRenewal = Renewed {
 type SRSCookie = String
 
 data SRSCookieJar = SRSCookieJar {
-    cookieName        :: DomainName,
-    cookieStr         :: SRSCookie,
-    cookieDomainCount :: Int,
-    cookieExpiry      :: UTCTime,
-    cookieIsOwner     :: Bool,
-    cookieLastAccess  :: Maybe UTCTime,
-    cookieLastIP      :: String,
-    cookiePermission  :: String,
-    cookieWaitingReqs :: Int
+    cookieName         :: DomainName,
+    cookieStr          :: SRSCookie,
+    cookieDomainCount  :: Int,
+    cookieDomainExpiry :: UTCTime,
+    cookieIsOwner      :: Bool,
+    cookieLastAccess   :: Maybe UTCTime,
+    cookieLastIP       :: String,
+    cookiePermission   :: String,
+    cookieWaitingReqs  :: Int
 } deriving (Show, Eq)
 

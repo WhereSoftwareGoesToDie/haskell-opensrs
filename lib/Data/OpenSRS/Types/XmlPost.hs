@@ -5,6 +5,7 @@ module Data.OpenSRS.Types.XmlPost where
 import Data.ByteString.Char8 (pack)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.CaseInsensitive as CI
+import Data.Monoid
 
 import qualified Network.HTTP.Client as HTTP
 import Network.Wreq.Types
@@ -25,6 +26,6 @@ xmlPostPayload x req = return $ req {
         HTTP.requestHeaders = h
     }
   where
-    h = HTTP.requestHeaders req ++ eh
+    h = HTTP.requestHeaders req <> eh
     eh = [(CI.mk $ pack "Content-Type", pack "text/xml"),
           (CI.mk $ pack "Accept-Encoding", pack "")]
