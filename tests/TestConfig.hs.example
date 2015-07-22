@@ -71,7 +71,7 @@ testContacts = fromList [("owner", testc),
     testc = Contact (Just "Jane")
                     (Just "Doe")
                     (Just "Frobozz Pty Ltd")
-                    (Just "geoffrey.roberts@anchor.com.au")
+                    (Just "jane.doe@example.com")
                     (Just "+61.299999999")
                     Nothing
                     (Just "Frobozz Pty Ltd")
