@@ -17,7 +17,7 @@ testContacts = fromList [("owner", testc),
     testc = Contact (Just "Jane")
                     (Just "Doe")
                     (Just "Frobozz Pty Ltd")
-                    (Just "geoffrey.roberts@anchor.com.au")
+                    (Just "jane.doe@anchor.com.au")
                     (Just "+61.299999999")
                     Nothing
                     (Just "Frobozz Pty Ltd")
@@ -31,8 +31,8 @@ testContacts = fromList [("owner", testc),
 -- | Testing nameservers
 testNameservers :: [Nameserver]
 testNameservers = [
-    Nameserver (Just "ns1.anchor.net.au") (Just "0") (Just "127.0.0.1"),
-    Nameserver (Just "ns2.anchor.net.au") (Just "0") (Just "127.0.0.2") ]
+    Nameserver (Just "ns1.example.com") (Just "0") (Just "127.0.0.1"),
+    Nameserver (Just "ns2.example.com") (Just "0") (Just "127.0.0.2") ]
 
 -- | Valid password
 validPassword :: String
