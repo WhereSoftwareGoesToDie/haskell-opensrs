@@ -25,6 +25,7 @@ library
                      , Data.OpenSRS.Types.Domain
                      , Data.OpenSRS.Types.DomainList
                      , Data.OpenSRS.Types.XmlPost
+                     , Text.HTML.TagSoup.Pretty
                      , Text.HTML.TagSoup.Manipulators
   build-depends:       base >=4.7 && <4.8
                      , bifunctors
