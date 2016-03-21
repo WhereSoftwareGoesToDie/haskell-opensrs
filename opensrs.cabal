@@ -35,7 +35,7 @@ library
                      , Data.OpenSRS.Types.XmlPost
                      , Text.HTML.TagSoup.Pretty
                      , Text.HTML.TagSoup.Manipulators
-  build-depends:       base >=4.7 && <4.8
+  build-depends:       base >=4.7
                      , bifunctors
                      , blaze-builder
                      , bytestring
@@ -62,7 +62,7 @@ test-suite xml-tests
   main-is:             XmlTests.hs
   other-modules:       TestConfig
   default-language:    Haskell2010
-  build-depends:       base >=4.7 && <4.8
+  build-depends:       base >=4.7
                      , bifunctors
                      , blaze-builder
                      , bytestring
@@ -89,7 +89,7 @@ test-suite request-tests
   main-is:             RequestTests.hs
   other-modules:       TestConfig
   default-language:    Haskell2010
-  build-depends:       base >=4.7 && <4.8
+  build-depends:       base >=4.7
                      , bifunctors
                      , blaze-builder
                      , bytestring
