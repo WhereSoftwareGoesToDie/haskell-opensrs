@@ -61,7 +61,7 @@ import Network.Wreq
 import Network.Wreq.Types
 
 
-import System.Locale (defaultTimeLocale)
+-- import System.Locale (defaultTimeLocale)
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Tree
 
@@ -357,7 +357,7 @@ parseTldDataDict s = Just . fromList . fmap (makeTld . return) $ tldroots
 --------------------------------------------------------------------------------
 -- | Extract status for methods that only require a success/failure response
 parseCookie :: DomainName -> String -> Maybe SRSCookieJar
-parseCookie dn s = 
+parseCookie dn s =
     case sequenceT (readInteger domainCountS, readInteger waitingRequestsS, toDate expireDateS) of
         Just (dc, wr, ed) -> Just $ SRSCookieJar dn
                                                  (gt "<item key='cookie'>")
