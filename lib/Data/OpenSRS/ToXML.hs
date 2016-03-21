@@ -10,7 +10,7 @@ import Data.Monoid
 import Data.OpenSRS.Types
 import qualified Data.Text as Text
 import Data.Time
-import System.Locale (defaultTimeLocale)
+-- import System.Locale (defaultTimeLocale)
 import Text.XmlHtml
 
 {-# ANN module ("HLint: ignore Use =<<" :: String) #-}
